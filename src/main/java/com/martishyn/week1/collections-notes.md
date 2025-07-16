@@ -7,10 +7,18 @@ elements
 HashMap underlying data structure is a array that holds objects inside. So each array position contains a bucket with object and inside there is a LinkedList with each inserted node.
 Calculation of the key hashcode happens when we insert inside DS and position is calculated keeping in mind size of the HashTable. Then each time we write/get/remove we calculate
 index to know exact position of the bucket. This gives us an opportunity to access object with o(1) is there is no collision in the bucket.
+   
+If 2 keys have the same hashcode -> HashMap keeps them in 1 bucket and equals is used for key lookup
+
 3. What is Set?
 Set is a collection that holds only unique elements based on equals and hashcode method. It does not guarantees that elements will keep order during insertion
 4. What is Queue, Deque, TreeMap, LinkedHashMap?
 Queue - FIFO DS. 
 Deque - collection that supports removal and insertion at boh ends
-TreeMap - is a type of map where keys are ordered in a black-red tree manner(natural ordering)
+TreeSet - ordered elements by keys based on black-red tree.
+TreeMap - is a HashMap with ordered keys
 LinkedHashMap - is a type of map where underlying DS is not an array of Object but a LinkedList so it guarantees keeping insertion order
+
+5.HashSet is faster than TreeSet because of not necessity of comparing keys with each other to make order
+FailFast -> During iterating with iterator if modCount != initial Value at the beggining -> we get ConcurrentModificationException
+ModCount -> internal counter of collection modifications (add - remove changes counter)
