@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 public class Library {
     private Map<Genre, List<Book>> booksByGenre = new HashMap<>();
@@ -24,16 +23,19 @@ public class Library {
         }
     }
 
+    public Map<Genre, List<Book>> getBooksCollection(){
+        return booksByGenre;
+    }
+
+    public Collection<List<Book>> getAllBooks(){
+        return booksByGenre.values();
+    }
+
     public void addBook(Book book) {
         if (book == null) {
             throw new IllegalArgumentException();
         }
-        List<Book> books = booksByGenre.get(book.getGenre()); //another object, not a reference to the list in map
-        if (books == null){
-            books = new ArrayList<>();
-        }
-        books.add(book);
-        booksByGenre.put(book.getGenre(), books);
+        booksByGenre.computeIfAbsent(book.getGenre(), key -> new ArrayList<>()).add(book);
     }
 
     public List<Book> getBooksByGenre(Genre genre) {
