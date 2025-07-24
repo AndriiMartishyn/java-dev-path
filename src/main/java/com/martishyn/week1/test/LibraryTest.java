@@ -2,6 +2,7 @@ package com.martishyn.week1.test;
 
 
 import com.martishyn.week1.src.Library;
+import com.martishyn.week1.src.LibraryPractice;
 import com.martishyn.week1.src.model.Book;
 import com.martishyn.week1.src.model.Genre;
 import org.junit.jupiter.api.Assertions;
@@ -41,5 +42,17 @@ public class LibraryTest {
         library.addBook(new Book("test_title3", "test_author3", Genre.BIOGRAPHY));
         int actual = library.getBooksByGenre(Genre.BIOGRAPHY).size();
         Assertions.assertEquals(3, actual);
+    }
+
+    @Test
+    public void shouldSortBooksByTitleLength() {
+        library.addBook(new Book("A", "test_author", Genre.BIOGRAPHY));
+        library.addBook(new Book("Dune", "test_author2", Genre.BIOGRAPHY));
+        library.addBook(new Book("The Lord of The Rings", "test_author3", Genre.BIOGRAPHY));
+        library.addBook(new Book("Hobbit", "test_author4", Genre.BIOGRAPHY));
+        library.addBook(new Book("1984", "test_author5", Genre.BIOGRAPHY));
+
+        final List<Book> books = LibraryPractice.sortBooksByTitleLength(library);
+        books.forEach(s -> System.out.println(s.getTitle()));
     }
 }
