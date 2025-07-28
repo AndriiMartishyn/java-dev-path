@@ -1,7 +1,8 @@
 package com.martishyn.week1.src.comparison;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -71,5 +72,53 @@ public class SortingDemo {
         products.sort(Product.productRatingComparator());
         System.out.printf("products = %s", products);
 
+        System.out.println("+===================================+");
+
+        Task task1 = new Task();
+        task1.title = "Buy milk";
+        task1.scheduledAt = LocalDate.of(2021, 12, 4);
+        task1.priority = 1;
+
+        Task task2 = new Task();
+        task2.title = "Buy eggs";
+        task2.scheduledAt = LocalDate.of(2021, 12, 2);
+        task2.priority = 2;
+
+        Task task3 = new Task();
+        task3.title = "Buy bread";
+        task3.scheduledAt = LocalDate.of(2021, 12, 3);
+        task3.priority = 3;
+
+        Task task4 = new Task();
+        task4.title = "Buy sugar";
+        task4.scheduledAt = LocalDate.of(2021, 12, 1);
+        task4.priority = 4;
+
+        Task task5 = new Task();
+        task5.title = "Buy sugar";
+        task5.scheduledAt = LocalDate.of(2021, 12, 7);
+        task5.priority = 2;
+
+        List<Task> tasks = new ArrayList<>();
+        tasks.add(task1);
+        tasks.add(task2);
+        tasks.add(task3);
+        tasks.add(task4);
+        tasks.sort(Task.taskDeadlineComparator());
+        System.out.printf("tasks = %s", tasks);
+
+        System.out.println("+===================================+");
+
+        tasks.sort(Task.taskDeadlineTitleComparator());
+        System.out.printf("tasks = %s", tasks);
+
+        System.out.println("+===================================+");
+        TreeSet<Task> tasksByTitle = new TreeSet<>(Comparator.comparing(Task::getTitle));
+        tasksByTitle.add(task1);
+        tasksByTitle.add(task2);
+        tasksByTitle.add(task3);
+        tasksByTitle.add(task4);
+        tasksByTitle.add(task5);
+        System.out.printf("tasksByTitle = %s", tasksByTitle);
     }
 }
