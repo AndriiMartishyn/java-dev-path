@@ -1,28 +1,12 @@
 package com.martishyn.week2;
 
-import jdk.swing.interop.SwingInterOpUtils;
-
-import javax.management.relation.Role;
-import javax.swing.KeyStroke;
-import java.net.SocketTimeoutException;
-import java.nio.charset.StandardCharsets;
-import java.util.AbstractMap;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
 
-import static java.util.stream.Collectors.averagingDouble;
-import static java.util.stream.Collectors.summarizingDouble;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toMap;
-import static java.util.stream.Collectors.toSet;
 
 public class User {
     private String name;
@@ -136,46 +120,36 @@ public class User {
     }
 
     private static void groupUsersByRole(List<User> users) {
-        Map<String, Set<List<User>>> collect = users.stream()
-                .flatMap(user -> user.getRoles().stream())
-                .map(Role -> Map.entry(Role, users))
-                .collect(Collectors.groupingBy(Map.Entry::getKey,
-                        Collectors.mapping(Map.Entry::getValue, toSet())));
+        Map<String, List<User>> usersByRole = users.stream()
+                .flatMap(user -> user.getRoles().stream()
+                        .map(role -> Map.entry(role, user)))
+                .collect(Collectors.groupingBy(
+                        Map.Entry::getKey,
+                        Collectors.mapping(Map.Entry::getValue, Collectors.toList())
+                ));
 
-        for (Map.Entry<String, Set<List<User>>> e : collect.entrySet()) {
-            System.out.println("Role: " + e.getKey() + ", Users: " + e.getValue()
-                    .stream()
-                    .flatMap(g -> g.stream())
-                            .map(User::getName)
-                    .collect(Collectors.joining(",")));
+        for (Map.Entry<String, List<User>> e : usersByRole.entrySet()) {
+            String userNames = e.getValue().stream()
+                    .map(User::getName)
+                    .collect(Collectors.joining(","));
+            System.out.println("Role: " + e.getKey() + ", Users: " + userNames);
         }
     }
 
+
     private static void groupUsersCountedByRole(List<User> users) {
-        Map<String, List<List<User>>> collect = users.stream()
-                .flatMap(user -> user.getRoles().stream())
-                .map(Role -> Map.entry(Role, users))
+        Map<String, List<User>> collect = users.stream()
+                .flatMap(user -> user.getRoles().stream()
+                        .map(Role -> Map.entry(Role, user)))
                 .collect(Collectors.groupingBy(Map.Entry::getKey,
                         Collectors.mapping(Map.Entry::getValue, toList())));
 
-        for (Map.Entry<String, List<List<User>>> e : collect.entrySet()) {
+        for (Map.Entry<String, List<User>> e : collect.entrySet()) {
             System.out.println("Role: " + e.getKey() + ", Users: " + e.getValue().size());
         }
     }
 
-//    private static void checkIfAllUsersHaveAtLeast1Role(List<User> users) {
-//        Map<String, List<List<User>>> collect = users.stream()
-//                .flatMap(user -> user.getRoles().stream())
-//                .map(Role -> Map.entry(Role, users))
-//                .collect(Collectors.groupingBy(Map.Entry::getKey,
-//                        Collectors.mapping(Map.Entry::getValue, toList())));
-//
-//        for (Map.Entry<String, List<List<User>>> e : collect.entrySet()) {
-//            System.out.println("Role: " + e.getKey() + ", Users: " + e.getValue().size());
-//        }
-//    }
-
-    private static Optional<User> findUserWithoutEmail(List<User> users){
+    private static Optional<User> findUserWithoutEmail(List<User> users) {
         return users.stream()
                 .filter(user -> user.getEmail() == null)
                 .findAny();
