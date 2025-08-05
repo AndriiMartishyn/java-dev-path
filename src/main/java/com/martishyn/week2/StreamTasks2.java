@@ -43,7 +43,7 @@ public class StreamTasks2 {
     // Завдання 4: Перевір, чи є користувачі без email
     public static boolean anyUserWithoutEmail(List<User> users) {
         return users.stream()
-                .anyMatch(user -> user.getEmail() != null);
+                .anyMatch(user -> user.getEmail() == null);
     }
 
     // Завдання 5: Отримай множину всіх унікальних ролей
@@ -82,14 +82,9 @@ public class StreamTasks2 {
 
     // Завдання 10: Порахуй середній вік користувачів, які мають email
     public static double getAverageAgeWithEmail(List<User> users) {
-        final long totalUsersWithEmail = users.stream()
+        return users.stream()
                 .filter(user -> user.getEmail() != null)
-                .count();
-        double sum = users.stream()
-                .filter(user -> user.getEmail() != null)
-                .map(User::getAge)
-                .mapToDouble(Integer::doubleValue)
-                .sum();
-        return sum / totalUsersWithEmail;
+                .mapToInt(User::getAge)
+                .average().orElse(0.0);
     }
 }
