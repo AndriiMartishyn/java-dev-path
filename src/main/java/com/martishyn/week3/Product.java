@@ -6,12 +6,22 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Product {
+
+    String id;
     String name;
     String category;
     double price;
     double rating;
 
     public Product(String name, String category, double price, double rating) {
+        this.name = name;
+        this.category = category;
+        this.price = price;
+        this.rating = rating;
+    }
+
+    public Product(String id, String name, String category, double price, double rating) {
+        this.id = id;
         this.name = name;
         this.category = category;
         this.price = price;
