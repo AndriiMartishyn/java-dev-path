@@ -5,6 +5,7 @@ import org.junit.platform.commons.util.StringUtils;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -71,11 +72,10 @@ public class AnalyticsService {
         final Map<String, Long> collect = users.stream()
                 .flatMap(u -> u.getRoles().stream())
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
-        return collect.entrySet()
-                .stream()
-                .max(Map.Entry.comparingByValue())
-                .get()
-                .getKey();
+        return Objects.requireNonNull(collect.entrySet()
+                        .stream()
+                        .max(Map.Entry.comparingByValue())
+                        .orElse(null)).getKey();
     }
 
     /**
@@ -86,26 +86,32 @@ public class AnalyticsService {
                 .collect(Collectors.groupingBy(Order::getStatus, Collectors.counting()));
     }
 
-    /** . Клієнт з найбільшою кількістю замовлень */
+    /**
+     * . Клієнт з найбільшою кількістю замовлень
+     */
     public String topUserByOrders() {
         Map<String, Long> collect = orders.stream()
                 .collect(Collectors.groupingBy(Order::getCustomers, Collectors.counting()));
         return collect.entrySet()
                 .stream().max(Map.Entry.comparingByValue())
-                .get()
-                .getKey();
+                .map(Map.Entry::getKey)
+                .orElse(null);
     }
 
-    /**  Згрупувати замовлення по клієнтах */
+    /**
+     * Згрупувати замовлення по клієнтах
+     */
     public Map<String, List<Order>> groupOrdersByCustomer() {
         return orders.stream()
                 .collect(Collectors.groupingBy(Order::getCustomers));
     }
 
-    /** 6. Відсортувати замовлення за статусом і id */
+    /**
+     * 6. Відсортувати замовлення за статусом і id
+     */
     public List<Order> sortOrdersByStatusAndId() {
-       return orders.stream()
-               .sorted(Comparator.comparing(Order::getStatus).thenComparing(Order::getId))
-               .collect(Collectors.toList());
+        return orders.stream()
+                .sorted(Comparator.comparing(Order::getStatus).thenComparing(Order::getId))
+                .collect(Collectors.toList());
     }
 }
