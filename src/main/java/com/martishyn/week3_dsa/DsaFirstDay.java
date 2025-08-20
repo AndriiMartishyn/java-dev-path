@@ -1,5 +1,8 @@
 package com.martishyn.week3_dsa;
 
+import com.sun.source.tree.EnhancedForLoopTree;
+
+import java.awt.PageAttributes;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,16 +30,13 @@ public class DsaFirstDay {
     public static int[] twoSum(int[] nums, int target) {
         Map<Integer, Integer> numToIndex = new HashMap<>();
         for (int i = 0; i < nums.length; i++){
+            int diff = target - nums[i];
+            if (numToIndex.containsKey(diff)){
+                return new int[] {numToIndex.get(diff),i};
+            }
             numToIndex.put(nums[i], i);
         }
-        int[] result = new int[2];
-        for (Map.Entry<Integer, Integer> entry :  numToIndex.entrySet()){
-            int diff = target - entry.getKey();
-            result[0] = entry.getValue();
-            result[1] = numToIndex.get(diff);
-            break;
-        }
-        return result;
+        return new int[0];
     }
 
     /**
@@ -46,10 +46,15 @@ public class DsaFirstDay {
      * Приклад: "racecar" -> true, "hello" -> false
      */
     public static boolean isPalindrome(String input) {
-        StringBuilder result = new StringBuilder();
-        for (int i = input.length() - 1; i >= 0; i--) {
-            result.append(input.charAt(i));
+        int left = 0;
+        int right = input.length() - 1;
+        while (left < right){
+            if (input.charAt(left)!= input.charAt(right)){
+                return false;
+            }
+            left++;
+            right--;
         }
-        return input.contentEquals(result);
+        return true;
     }
 }

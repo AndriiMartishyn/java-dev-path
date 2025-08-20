@@ -26,7 +26,9 @@ public class DsaTests {
     public void shouldCheckIfPalindrome() {
         boolean actual1 = DsaFirstDay.isPalindrome("hello");
         boolean actual2 = DsaFirstDay.isPalindrome("racecar");
+        boolean actual3 = DsaFirstDay.isPalindrome("rbbr");
         Assertions.assertFalse(actual1);
         Assertions.assertTrue(actual2);
+        Assertions.assertTrue(actual3);
     }
 }
