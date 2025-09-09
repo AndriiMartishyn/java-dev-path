@@ -50,7 +50,7 @@ public class ProductsController {
         URI responseUri = UriComponentsBuilder.fromPath("/api/v1/products/{id}")
                 .buildAndExpand(createdProduct.getId())
                 .toUri();
-        return ResponseEntity.ok(responseUri);
+        return ResponseEntity.created(responseUri).body(createdProduct);
     }
 
     @PutMapping

@@ -1,23 +1,28 @@
 package com.martishyn.productapi.model;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 
-@RequiredArgsConstructor
 @Getter
 @Setter
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
+@EqualsAndHashCode
 public class Product {
 
-    Long id;
+    private Long id;
 
-    String name;
+    private String name;
 
-    BigDecimal price;
+    private BigDecimal price;
 
-    String category;
+    private String category;
+
 }
