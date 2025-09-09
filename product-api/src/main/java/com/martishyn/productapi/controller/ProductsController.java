@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -44,7 +45,7 @@ public class ProductsController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createProduct(Product product) {
+    public ResponseEntity<?> createProduct(@RequestBody Product product) {
         Product createdProduct = productService.createProduct(product);
         URI responseUri = UriComponentsBuilder.fromPath("/api/v1/products/{id}")
                 .buildAndExpand(createdProduct.getId())
@@ -53,7 +54,7 @@ public class ProductsController {
     }
 
     @PutMapping
-    public ResponseEntity<?> updateProduct(Product product) {
+    public ResponseEntity<?> updateProduct(@RequestBody Product product) {
         Product updatedProduct = productService.updateProduct(product);
         if (updatedProduct == null) {
             return ResponseEntity.notFound().build();
@@ -61,7 +62,7 @@ public class ProductsController {
         return ResponseEntity.ok(updatedProduct);
     }
 
-    @DeleteMapping
+    @DeleteMapping("{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
