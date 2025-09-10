@@ -67,11 +67,11 @@ public class AnalyticsServiceTest {
         Map<String, List<Product>> productByRatingLimited = analyticsService.topNProductsPerCategory(2);
 
         List<Product> electronics = productByRatingLimited.get("Electronics");
-        Assertions.assertEquals(4.8, electronics.getFirst().getRating());
+        Assertions.assertEquals(4.8, electronics.get(0).getRating());
         Assertions.assertEquals(4.5, electronics.get(1).getRating());
 
         List<Product> books = productByRatingLimited.get("Books");
-        Assertions.assertEquals("Book A", books.getFirst().getName());
+        Assertions.assertEquals("Book A", books.get(0).getName());
         Assertions.assertEquals("Book B", books.get(1).getName());
     }
 
