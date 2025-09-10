@@ -69,7 +69,11 @@ public class InMemoryProductService implements ProductService {
         if (id == null) {
             throw new IllegalArgumentException("ID cannot be null");
         }
-        products.removeIf(product -> product.getId().equals(id));
+        if (products.isEmpty()) {
+            throw new IllegalArgumentException("No products found");
+        }
+        Product productToRemove = getProductById(id);
+        products.remove(productToRemove);
     }
 
     private void updateEntireProduct(Product productFromRequest, Product productToUpdate) {
