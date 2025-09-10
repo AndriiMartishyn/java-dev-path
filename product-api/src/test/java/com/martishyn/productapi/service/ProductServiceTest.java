@@ -1,8 +1,8 @@
 package com.martishyn.productapi.service;
 
+import com.martishyn.productapi.dto.ProductRequestDto;
 import com.martishyn.productapi.model.Product;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,8 +52,8 @@ public class ProductServiceTest {
 
     @Test
     void shouldCreateProductAndGenerateId() {
-        Product newProduct = new Product("newProduct", BigDecimal.valueOf(100.00), "newCategory");
-        Product newProduct1 = new Product("newProduct2", BigDecimal.valueOf(100.00), "newCategory");
+        ProductRequestDto newProduct = new ProductRequestDto("newProduct", BigDecimal.valueOf(100.00), "newCategory");
+        ProductRequestDto newProduct1 = new ProductRequestDto("newProduct2", BigDecimal.valueOf(100.00), "newCategory");
         Product createdProduct1 = productService.createProduct(newProduct);
         Product createdProduct2 = productService.createProduct(newProduct1);
 
@@ -64,7 +64,7 @@ public class ProductServiceTest {
 
     @Test
     void shouldUpdateProduct() {
-        Product product = new Product(1L, "product-updated", BigDecimal.valueOf(12.00), "category-updated");
+        ProductRequestDto product = new ProductRequestDto(1L, "product-updated", BigDecimal.valueOf(12.00), "category-updated");
 
         productService.updateProduct(product);
 
@@ -82,5 +82,4 @@ public class ProductServiceTest {
         Assertions.assertEquals(4, products.size());
         Assertions.assertNull(product);
     }
-
 }

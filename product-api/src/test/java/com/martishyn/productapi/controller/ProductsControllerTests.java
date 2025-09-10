@@ -1,6 +1,6 @@
 package com.martishyn.productapi.controller;
 
-import com.jayway.jsonpath.JsonPath;
+import com.martishyn.productapi.dto.ProductRequestDto;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.service.ProductService;
 import org.junit.jupiter.api.Test;
@@ -12,7 +12,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
-import java.net.URI;
 import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -83,14 +82,15 @@ public class ProductsControllerTests {
     void shouldCreateProductFromRequest() throws Exception {
         String productJson = """
                 {
-                   "id": 1,
+              
                   "name": "Laptop",
                   "price": 1299.99,
                   "category": "Electronics"
                 }
                 """;
+        ProductRequestDto productRequestDto = new ProductRequestDto( "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
         Product product = new Product(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
-        Mockito.when(productService.createProduct(product)).thenReturn(product);
+        Mockito.when(productService.createProduct(productRequestDto)).thenReturn(product);
 
         mockMvc.perform(post(PRODUCTS_URL)
                         .content(productJson)
@@ -114,8 +114,9 @@ public class ProductsControllerTests {
                   "category": "Electronics"
                 }
                 """;
+        ProductRequestDto productRequestDto = new ProductRequestDto(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
         Product product = new Product(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
-        Mockito.when(productService.updateProduct(product)).thenReturn(product);
+        Mockito.when(productService.updateProduct(productRequestDto)).thenReturn(product);
 
         mockMvc.perform(put(PRODUCTS_URL)
                         .content(productJson)
@@ -138,8 +139,8 @@ public class ProductsControllerTests {
                   "category": "Electronics"
                 }
                 """;
-        Product product = new Product(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
-        Mockito.when(productService.updateProduct(product)).thenReturn(null);
+        ProductRequestDto productRequestDto = new ProductRequestDto(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
+        Mockito.when(productService.updateProduct(productRequestDto)).thenReturn(null);
 
         mockMvc.perform(put(PRODUCTS_URL)
                         .content(productJson)
@@ -156,6 +157,20 @@ public class ProductsControllerTests {
 
         Mockito.verify(productService, Mockito.times(1)).deleteProduct(1L);
         Mockito.verifyNoMoreInteractions(productService);
+    }
+
+    @Test
+    void shouldNotCreateProductWhenValidationFails() throws Exception {
+        String productJson = """
+                {
+                  "name": "Laptop",
+                  "price": -10.00,
+                  "category": ""
+                }
+                """;
+
+        mockMvc.perform(post(PRODUCTS_URL).content(productJson).contentType("application/json"))
+                .andExpect(status().isBadRequest());
     }
 }
 

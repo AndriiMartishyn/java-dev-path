@@ -1,5 +1,6 @@
 package com.martishyn.productapi.service;
 
+import com.martishyn.productapi.dto.ProductRequestDto;
 import com.martishyn.productapi.model.Product;
 
 import java.util.List;
@@ -10,9 +11,9 @@ public interface ProductService {
 
     Product getProductById(Long id);
 
-    Product createProduct(Product product);
+    Product createProduct(ProductRequestDto product);
 
-    Product updateProduct(Product product);
+    Product updateProduct(ProductRequestDto product);
 
     void deleteProduct(Long id);
 }

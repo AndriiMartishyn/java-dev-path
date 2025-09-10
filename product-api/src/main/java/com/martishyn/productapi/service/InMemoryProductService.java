@@ -1,5 +1,6 @@
 package com.martishyn.productapi.service;
 
+import com.martishyn.productapi.dto.ProductRequestDto;
 import com.martishyn.productapi.model.Product;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -38,7 +39,7 @@ public class InMemoryProductService implements ProductService {
     }
 
     @Override
-    public Product createProduct(Product product) {
+    public Product createProduct(ProductRequestDto product) {
         if (product == null) {
             throw new IllegalArgumentException("Product cannot be null");
         }
@@ -53,15 +54,16 @@ public class InMemoryProductService implements ProductService {
     }
 
     @Override
-    public Product updateProduct(Product product) {
+    public Product updateProduct(ProductRequestDto product) {
         if (product == null) {
             throw new IllegalArgumentException("Product cannot be null");
         }
-        products.stream()
+        Product productToUpdate = products.stream()
                 .filter(p -> p.getId().equals(product.getId()))
                 .findFirst()
-                .ifPresent(p -> updateEntireProduct(product, p));
-        return product;
+                .orElse(new Product());
+        updateEntireProduct(product, productToUpdate);
+        return productToUpdate;
     }
 
     @Override
@@ -76,7 +78,7 @@ public class InMemoryProductService implements ProductService {
         products.remove(productToRemove);
     }
 
-    private void updateEntireProduct(Product productFromRequest, Product productToUpdate) {
+    private void updateEntireProduct(ProductRequestDto productFromRequest, Product productToUpdate) {
         productToUpdate.setName(productFromRequest.getName());
         productToUpdate.setCategory(productFromRequest.getCategory());
         productToUpdate.setPrice(productFromRequest.getPrice());

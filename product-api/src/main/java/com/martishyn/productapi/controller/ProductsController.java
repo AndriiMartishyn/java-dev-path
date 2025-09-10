@@ -1,10 +1,12 @@
 package com.martishyn.productapi.controller;
 
+import com.martishyn.productapi.dto.ProductRequestDto;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.service.ProductService;
-import com.sun.net.httpserver.Headers;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -45,7 +47,7 @@ public class ProductsController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createProduct(@RequestBody Product product) {
+    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductRequestDto product) {
         Product createdProduct = productService.createProduct(product);
         URI responseUri = UriComponentsBuilder.fromPath("/api/v1/products/{id}")
                 .buildAndExpand(createdProduct.getId())
@@ -54,7 +56,7 @@ public class ProductsController {
     }
 
     @PutMapping
-    public ResponseEntity<?> updateProduct(@RequestBody Product product) {
+    public ResponseEntity<?> updateProduct(@RequestBody @Valid ProductRequestDto product) {
         Product updatedProduct = productService.updateProduct(product);
         if (updatedProduct == null) {
             return ResponseEntity.notFound().build();
