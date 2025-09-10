@@ -15,8 +15,10 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -90,7 +92,8 @@ public class ProductsControllerTests {
         Product product = new Product(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
         Mockito.when(productService.createProduct(product)).thenReturn(product);
 
-        mockMvc.perform(post(PRODUCTS_URL).content(productJson)
+        mockMvc.perform(post(PRODUCTS_URL)
+                        .content(productJson)
                         .contentType("application/json"))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType("application/json"))
@@ -99,10 +102,61 @@ public class ProductsControllerTests {
                 .andExpect(jsonPath("$.price").value(1299.99))
                 .andExpect(jsonPath("$.category").value("Electronics"))
                 .andExpect(header().string("Location", "/api/v1/products/1"));
-
     }
 
+    @Test
+    void shouldUpdatePassedProduct() throws Exception {
+        String productJson = """
+                {
+                   "id": 1,
+                  "name": "Laptop",
+                  "price": 1299.99,
+                  "category": "Electronics"
+                }
+                """;
+        Product product = new Product(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
+        Mockito.when(productService.updateProduct(product)).thenReturn(product);
 
+        mockMvc.perform(put(PRODUCTS_URL)
+                        .content(productJson)
+                        .contentType("application/json"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType("application/json"))
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.name").value("Laptop"))
+                .andExpect(jsonPath("$.price").value(1299.99))
+                .andExpect(jsonPath("$.category").value("Electronics"));
+    }
+
+    @Test
+    void shouldReturnNotFoundWhenTryingToUpdateNotExistingProduct() throws Exception {
+        String productJson = """
+                {
+                   "id": 1,
+                  "name": "Laptop",
+                  "price": 1299.99,
+                  "category": "Electronics"
+                }
+                """;
+        Product product = new Product(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
+        Mockito.when(productService.updateProduct(product)).thenReturn(null);
+
+        mockMvc.perform(put(PRODUCTS_URL)
+                        .content(productJson)
+                        .contentType("application/json"))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldDeleteProductById() throws Exception {
+        Mockito.doNothing().when(productService).deleteProduct(1L);
+
+        mockMvc.perform(delete(PRODUCTS_URL + "/{id}", 1L))
+                .andExpect(status().isNoContent());
+
+        Mockito.verify(productService, Mockito.times(1)).deleteProduct(1L);
+        Mockito.verifyNoMoreInteractions(productService);
+    }
 }
 
 
