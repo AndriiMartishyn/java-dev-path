@@ -1,5 +1,7 @@
 package com.martishyn.productapi.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.martishyn.productapi.dto.ProductRequestDto;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.service.ProductService;
@@ -9,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
@@ -82,13 +85,13 @@ public class ProductsControllerTests {
     void shouldCreateProductFromRequest() throws Exception {
         String productJson = """
                 {
-              
+                
                   "name": "Laptop",
                   "price": 1299.99,
                   "category": "Electronics"
                 }
                 """;
-        ProductRequestDto productRequestDto = new ProductRequestDto( "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
+        ProductRequestDto productRequestDto = new ProductRequestDto("Laptop", BigDecimal.valueOf(1299.99), "Electronics");
         Product product = new Product(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
         Mockito.when(productService.createProduct(productRequestDto)).thenReturn(product);
 
@@ -146,6 +149,23 @@ public class ProductsControllerTests {
                         .content(productJson)
                         .contentType("application/json"))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void shouldThrowValidationErrorWhenUpdatingWithEmptyNameFieldInBody() throws Exception {
+        String productJson = """
+                {
+                   "id": 1,
+                  "name": "",
+                  "price": 1299.99,
+                  "category": "Electronics"
+                }
+                """;
+        mockMvc.perform(put(PRODUCTS_URL)
+                        .content(productJson)
+                        .contentType("application/json"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors[0].name").value("must not be blank"));
     }
 
     @Test
