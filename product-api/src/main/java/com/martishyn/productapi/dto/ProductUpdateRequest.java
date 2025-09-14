@@ -2,6 +2,7 @@ package com.martishyn.productapi.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -15,8 +16,9 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @EqualsAndHashCode
-public class ProductRequestDto {
+public class ProductUpdateRequest {
 
+    @Positive
     private Long id;
 
     @NotBlank
@@ -27,10 +29,4 @@ public class ProductRequestDto {
 
     @NotBlank
     private String category;
-
-    public ProductRequestDto(String name, BigDecimal price, String category) {
-        this.name = name;
-        this.price = price;
-        this.category = category;
-    }
 }
