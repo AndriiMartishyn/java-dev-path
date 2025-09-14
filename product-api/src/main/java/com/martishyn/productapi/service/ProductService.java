@@ -1,19 +1,20 @@
 package com.martishyn.productapi.service;
 
-import com.martishyn.productapi.dto.ProductRequestDto;
-import com.martishyn.productapi.model.Product;
+import com.martishyn.productapi.dto.ProductCreateRequest;
+import com.martishyn.productapi.dto.ProductResponseDto;
+import com.martishyn.productapi.dto.ProductUpdateRequest;
 
 import java.util.List;
 
 public interface ProductService {
 
-    List<Product> getAllProducts();
+    List<ProductResponseDto> getAllProducts();
 
-    Product getProductById(Long id);
+    ProductResponseDto getProductById(Long id);
 
-    Product createProduct(ProductRequestDto product);
+    ProductResponseDto createProduct(ProductCreateRequest product);
 
-    Product updateProduct(ProductRequestDto product);
+    ProductResponseDto updateProduct(ProductUpdateRequest product);
 
     void deleteProduct(Long id);
 }

@@ -1,8 +1,8 @@
 package com.martishyn.productapi.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.martishyn.productapi.dto.ProductRequestDto;
+import com.martishyn.productapi.dto.ProductCreateRequest;
+import com.martishyn.productapi.dto.ProductResponseDto;
+import com.martishyn.productapi.dto.ProductUpdateRequest;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.service.ProductService;
 import org.junit.jupiter.api.Test;
@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
@@ -48,9 +47,10 @@ public class ProductsControllerTests {
 
     @Test
     void shouldReturnFoundProducts() throws Exception {
-        Mockito.when(productService.getAllProducts()).thenReturn(
-                List.of(new Product(1L, "test1", BigDecimal.ONE, "test1-category"),
-                        new Product(2L, "test2", BigDecimal.TEN, "test2-category")));
+        Mockito.when(
+                productService.getAllProducts()).thenReturn(
+                List.of(new ProductResponseDto(1L, "test1", BigDecimal.ONE, "test1-category"),
+                        new ProductResponseDto(2L, "test2", BigDecimal.TEN, "test2-category")));
 
         ResultActions requestResult = mockMvc.perform(get(PRODUCTS_URL));
 
@@ -63,7 +63,7 @@ public class ProductsControllerTests {
     @Test
     void shouldReturnProductById() throws Exception {
         Mockito.when(productService.getProductById(1L)).thenReturn(
-                new Product(1L, "test1", BigDecimal.ONE, "test1-category"));
+                new ProductResponseDto(1L, "test1", BigDecimal.ONE, "test1-category"));
 
         mockMvc.perform(get(PRODUCTS_URL + "/{id}", 1L))
                 .andExpect(status().isOk())
@@ -91,9 +91,9 @@ public class ProductsControllerTests {
                   "category": "Electronics"
                 }
                 """;
-        ProductRequestDto productRequestDto = new ProductRequestDto("Laptop", BigDecimal.valueOf(1299.99), "Electronics");
-        Product product = new Product(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
-        Mockito.when(productService.createProduct(productRequestDto)).thenReturn(product);
+        ProductCreateRequest productCreateRequest = new ProductCreateRequest("Laptop", BigDecimal.valueOf(1299.99), "Electronics");
+        ProductResponseDto productResponseDto = new ProductResponseDto(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
+        Mockito.when(productService.createProduct(productCreateRequest)).thenReturn(productResponseDto);
 
         mockMvc.perform(post(PRODUCTS_URL)
                         .content(productJson)
@@ -117,9 +117,9 @@ public class ProductsControllerTests {
                   "category": "Electronics"
                 }
                 """;
-        ProductRequestDto productRequestDto = new ProductRequestDto(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
-        Product product = new Product(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
-        Mockito.when(productService.updateProduct(productRequestDto)).thenReturn(product);
+        ProductUpdateRequest productUpdateRequest = new ProductUpdateRequest(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
+        ProductResponseDto productResponseDto = new ProductResponseDto(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
+        Mockito.when(productService.updateProduct(productUpdateRequest)).thenReturn(productResponseDto);
 
         mockMvc.perform(put(PRODUCTS_URL)
                         .content(productJson)
@@ -142,8 +142,8 @@ public class ProductsControllerTests {
                   "category": "Electronics"
                 }
                 """;
-        ProductRequestDto productRequestDto = new ProductRequestDto(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
-        Mockito.when(productService.updateProduct(productRequestDto)).thenReturn(null);
+        ProductUpdateRequest productUpdateRequest = new ProductUpdateRequest(1L, "Laptop", BigDecimal.valueOf(1299.99), "Electronics");
+        Mockito.when(productService.updateProduct(productUpdateRequest)).thenReturn(null);
 
         mockMvc.perform(put(PRODUCTS_URL)
                         .content(productJson)
@@ -189,7 +189,8 @@ public class ProductsControllerTests {
                 }
                 """;
 
-        mockMvc.perform(post(PRODUCTS_URL).content(productJson).contentType("application/json"))
+        mockMvc.perform(post(PRODUCTS_URL).content(productJson)
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest());
     }
 }

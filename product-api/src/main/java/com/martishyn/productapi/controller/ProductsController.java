@@ -1,12 +1,13 @@
 package com.martishyn.productapi.controller;
 
-import com.martishyn.productapi.dto.ProductRequestDto;
+import com.martishyn.productapi.dto.ProductCreateRequest;
+import com.martishyn.productapi.dto.ProductResponseDto;
+import com.martishyn.productapi.dto.ProductUpdateRequest;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -30,7 +31,7 @@ public class ProductsController {
 
     @GetMapping
     public ResponseEntity<?> getAllProducts() {
-        List<Product> allProducts = productService.getAllProducts();
+        List<ProductResponseDto> allProducts = productService.getAllProducts();
         if (allProducts.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -39,7 +40,7 @@ public class ProductsController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getProductById(@PathVariable Long id) {
-        Product product = productService.getProductById(id);
+        ProductResponseDto product = productService.getProductById(id);
         if (product == null) {
             return ResponseEntity.notFound().build();
         }
@@ -47,8 +48,8 @@ public class ProductsController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductRequestDto product) {
-        Product createdProduct = productService.createProduct(product);
+    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductCreateRequest product) {
+        ProductResponseDto createdProduct = productService.createProduct(product);
         URI responseUri = UriComponentsBuilder.fromPath("/api/v1/products/{id}")
                 .buildAndExpand(createdProduct.getId())
                 .toUri();
@@ -56,8 +57,8 @@ public class ProductsController {
     }
 
     @PutMapping
-    public ResponseEntity<?> updateProduct(@RequestBody @Valid ProductRequestDto product) {
-        Product updatedProduct = productService.updateProduct(product);
+    public ResponseEntity<?> updateProduct(@RequestBody @Valid ProductUpdateRequest product) {
+        ProductResponseDto updatedProduct = productService.updateProduct(product);
         if (updatedProduct == null) {
             return ResponseEntity.notFound().build();
         }
