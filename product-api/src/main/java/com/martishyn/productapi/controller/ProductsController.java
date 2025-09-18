@@ -6,6 +6,7 @@ import com.martishyn.productapi.dto.ProductUpdateRequest;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.service.ProductService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -15,9 +16,11 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
@@ -69,5 +72,24 @@ public class ProductsController {
     public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/search/category/{category}")
+    public ResponseEntity<List<ProductResponseDto>> getByCategory(@PathVariable String category) {
+        return ResponseEntity.ok(productService.findProductsByCategory(category));
+    }
+
+    @GetMapping("/search/price")
+    public ResponseEntity<List<ProductResponseDto>> getByPriceRange(
+            @RequestParam BigDecimal min,
+            @RequestParam BigDecimal max) {
+        return ResponseEntity.ok(productService.findProductsByPriceRange(min, max));
+    }
+
+    @GetMapping("/search/advanced")
+    public ResponseEntity<List<ProductResponseDto>> advancedSearch(
+            @RequestParam String category,
+            @RequestParam BigDecimal maxPrice) {
+        return ResponseEntity.ok(productService.findProductsWithSearch(category, maxPrice));
     }
 }

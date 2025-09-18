@@ -37,7 +37,7 @@ public class ProductServiceTest {
     private ModelMapper modelMapper;
 
     @InjectMocks
-    private ProductService productService = new DefaultProductService();
+    private ProductService productService = new DefaultProductService(productRepository);
 
     private List<Product> products;
 
