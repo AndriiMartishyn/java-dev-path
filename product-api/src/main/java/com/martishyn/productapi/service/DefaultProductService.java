@@ -14,15 +14,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class DefaultProductService implements ProductService {
 
     private final ProductRepository productRepository;
 
     private final ModelMapper modelMapper = new ModelMapper();
-
-    public DefaultProductService(ProductRepository productRepository) {
-        this.productRepository = productRepository;
-    }
 
     @Override
     public List<ProductResponseDto> getAllProducts() {
