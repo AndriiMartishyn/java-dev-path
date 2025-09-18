@@ -16,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
@@ -33,11 +34,8 @@ public class ProductServiceTest {
     @Mock
     private ProductRepository productRepository;
 
-    @Spy
-    private ModelMapper modelMapper;
-
     @InjectMocks
-    private ProductService productService = new DefaultProductService();
+    private DefaultProductService productService;
 
     private List<Product> products;
 

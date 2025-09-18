@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,9 +17,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DefaultProductService implements ProductService {
 
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
 
-    private ModelMapper modelMapper;
+    private final ModelMapper modelMapper = new ModelMapper();
 
     @Override
     public List<ProductResponseDto> getAllProducts() {
@@ -63,9 +64,40 @@ public class DefaultProductService implements ProductService {
         if (id == null) {
             throw new IllegalArgumentException("ID cannot be null");
         }
+        checkIfProductsExist();
+        productRepository.deleteById(id);
+    }
+
+    @Override
+    public List<ProductResponseDto> findProductsByCategory(String category) {
+        if (category == null) {
+            throw new IllegalArgumentException("Category cannot be null");
+        }
+        checkIfProductsExist();
+        List<Product> foundProducts = productRepository.findByCategory(category);
+        return foundProducts.stream()
+                .map(object -> modelMapper.map(object, ProductResponseDto.class))
+                .toList();
+    }
+
+    @Override
+    public List<ProductResponseDto> findProductsByPriceRange(BigDecimal min, BigDecimal max) {
+        checkIfProductsExist();
+        return productRepository.findByPriceBetween(min, max)
+                .stream()
+                .map(object -> modelMapper.map(object, ProductResponseDto.class))
+                .toList();
+    }
+
+    @Override
+    public List<ProductResponseDto> findProductsWithSearch(String category, BigDecimal maxPrice) {
+        checkIfProductsExist();
+        return productRepository.findByCategoryAndPriceLessThan(category, maxPrice);
+    }
+
+    private void checkIfProductsExist() {
         if (productRepository.findAll().isEmpty()) {
             throw new IllegalArgumentException("No products found");
         }
-        productRepository.deleteById(id);
     }
 }
