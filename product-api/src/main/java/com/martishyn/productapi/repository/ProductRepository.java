@@ -1,7 +1,9 @@
 package com.martishyn.productapi.repository;
 
 import com.martishyn.productapi.dto.ProductResponseDto;
+import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Product;
+import org.hibernate.annotations.Parameter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,13 +15,20 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    List<Product> findByCategory(String category);
+//    List<Product> findByCategory(String category);
 
-    List<Product> findByPriceBetween(BigDecimal min, BigDecimal max);
+    @Query("SELECT p FROM Product p WHERE p.price BETWEEN :min AND :max")
+    List<Product> findByPriceBetween(@Param("min") BigDecimal min, @Param("max") BigDecimal max);
 
-    @Query("SELECT new com.martishyn.productapi.dto.ProductResponseDto(p.id, p.name, p.price, p.category)" +
-            " FROM Product p WHERE p.category LIKE :category AND p.price < :maxPrice ORDER BY p.id")
-    List<ProductResponseDto> findByCategoryAndPriceLessThan(@Param("category") String category,
-                                                            @Param("maxPrice") BigDecimal maxPrice);
+    List<Product> findProductsByCategory(Category foundCategory);
+
+    @Query("SELECT p FROM Product p where p.category=:category AND p.price < :minPrice")
+    List<Product> findProductByCategoryAndPriceLessThan(@Param("category") Category category,
+                                                        @Param("minPrice") BigDecimal minPrice);
+
+//    @Query("SELECT new com.martishyn.productapi.dto.ProductResponseDto(p.id, p.name, p.price, p.category)" +
+//            " FROM Product p WHERE p.category LIKE :category AND p.price < :maxPrice ORDER BY p.id")
+//    List<ProductResponseDto> findByCategoryAndPriceLessThan(@Param("category") String category,
+//                                                            @Param("maxPrice") BigDecimal maxPrice);
 
 }

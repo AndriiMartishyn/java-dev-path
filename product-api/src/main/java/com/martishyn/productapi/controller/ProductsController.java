@@ -3,12 +3,14 @@ package com.martishyn.productapi.controller;
 import com.martishyn.productapi.dto.ProductCreateRequest;
 import com.martishyn.productapi.dto.ProductResponseDto;
 import com.martishyn.productapi.dto.ProductUpdateRequest;
+import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.service.ProductService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -32,64 +35,90 @@ public class ProductsController {
 
     private final ProductService productService;
 
+    private final ModelMapper modelMapper = new ModelMapper();
+
     @GetMapping
     public ResponseEntity<?> getAllProducts() {
-        List<ProductResponseDto> allProducts = productService.getAllProducts();
+        List<Product> allProducts = productService.findAllProducts();
         if (allProducts.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(productService.getAllProducts());
+        List<ProductResponseDto> productResponses = allProducts.stream()
+                .map(obj -> modelMapper.map(obj, ProductResponseDto.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(productResponses);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getProductById(@PathVariable Long id) {
-        ProductResponseDto product = productService.getProductById(id);
+    public ResponseEntity<ProductResponseDto> getProductById(@PathVariable Long id) {
+        Product product = productService.findProductById(id);
         if (product == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(product);
+        return ResponseEntity.ok(modelMapper.map(product, ProductResponseDto.class));
     }
 
-    @PostMapping
-    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductCreateRequest product) {
-        ProductResponseDto createdProduct = productService.createProduct(product);
+    @PostMapping("/{categoryId}")
+    public ResponseEntity<?> createProduct(@RequestBody @Valid ProductCreateRequest product, @PathVariable Long categoryId) {
+        Product createdProduct = productService.createProduct(product, categoryId);
         URI responseUri = UriComponentsBuilder.fromPath("/api/v1/products/{id}")
                 .buildAndExpand(createdProduct.getId())
                 .toUri();
         return ResponseEntity.created(responseUri).body(createdProduct);
     }
 
-    @PutMapping
-    public ResponseEntity<?> updateProduct(@RequestBody @Valid ProductUpdateRequest product) {
-        ProductResponseDto updatedProduct = productService.updateProduct(product);
+    @PutMapping("/{productId}")
+    public ResponseEntity<ProductResponseDto> updateProduct(@RequestBody @Valid ProductUpdateRequest product) {
+        Product updatedProduct = productService.updateProduct(product);
         if (updatedProduct == null) {
             return ResponseEntity.notFound().build();
         }
-        return ResponseEntity.ok(updatedProduct);
+        return ResponseEntity.ok(modelMapper.map(updatedProduct, ProductResponseDto.class));
     }
 
     @DeleteMapping("{id}")
     public ResponseEntity<?> deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
+        productService.deleteProductById(id);
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/search/category/{category}")
-    public ResponseEntity<List<ProductResponseDto>> getByCategory(@PathVariable String category) {
-        return ResponseEntity.ok(productService.findProductsByCategory(category));
+    @GetMapping("/search/category/{categoryId}")
+    public ResponseEntity<List<ProductResponseDto>> getProductsByCategory(@PathVariable Long categoryId) {
+        List<Product> productsByCategory = productService.findProductsByCategory(categoryId);
+        if (productsByCategory.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<ProductResponseDto> mappedProducts = productsByCategory.stream()
+                .map(obj -> modelMapper.map(obj, ProductResponseDto.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(mappedProducts);
     }
 
     @GetMapping("/search/price")
-    public ResponseEntity<List<ProductResponseDto>> getByPriceRange(
+    public ResponseEntity<List<ProductResponseDto>> getProductsByPriceRange(
             @RequestParam BigDecimal min,
             @RequestParam BigDecimal max) {
-        return ResponseEntity.ok(productService.findProductsByPriceRange(min, max));
+        List<Product> productByPriceBetween = productService.findProductByPriceBetween(min, max);
+        if (productByPriceBetween.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<ProductResponseDto> mappedProducts = productByPriceBetween.stream()
+                .map(obj -> modelMapper.map(obj, ProductResponseDto.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(mappedProducts);
     }
 
     @GetMapping("/search/advanced")
-    public ResponseEntity<List<ProductResponseDto>> advancedSearch(
-            @RequestParam String category,
-            @RequestParam BigDecimal maxPrice) {
-        return ResponseEntity.ok(productService.findProductsWithSearch(category, maxPrice));
+    public ResponseEntity<List<ProductResponseDto>> getProductsWithSearchByPriceAndCategory(
+            @RequestParam BigDecimal maxPrice,
+            @RequestBody Category category) {
+        List<Product> productByCategoryAndPrice = productService.findProductByCategoryAndPrice(maxPrice, category);
+        if (productByCategoryAndPrice.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        List<ProductResponseDto> mappedProducts = productByCategoryAndPrice.stream()
+                .map(obj -> modelMapper.map(obj, ProductResponseDto.class))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(mappedProducts);
     }
 }

@@ -13,19 +13,10 @@ import java.math.BigDecimal;
 @Setter
 @AllArgsConstructor
 @EqualsAndHashCode
-public class ProductResponseDto {
+public class CategoryResponse {
 
     private Long id;
 
     private String name;
 
-    private BigDecimal price;
-
-    private CategoryResponse category;
-
-    public ProductResponseDto(String name, BigDecimal price, CategoryResponse category) {
-        this.name = name;
-        this.price = price;
-        this.category = category;
-    }
 }

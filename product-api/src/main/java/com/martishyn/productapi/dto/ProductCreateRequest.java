@@ -27,12 +27,8 @@ public class ProductCreateRequest {
     @Min(0)
     private BigDecimal price;
 
-    @NotBlank
-    private String category;
-
-    public ProductCreateRequest(String name, BigDecimal price, String category) {
+    public ProductCreateRequest(String name, BigDecimal price) {
         this.name = name;
         this.price = price;
-        this.category = category;
     }
 }
