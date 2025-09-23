@@ -27,6 +27,6 @@ public class ProductUpdateRequest {
     @Min(0)
     private BigDecimal price;
 
-    @NotBlank
-    private String category;
+    @Positive
+    private Long categoryId;
 }

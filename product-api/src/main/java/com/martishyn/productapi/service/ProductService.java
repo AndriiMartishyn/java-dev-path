@@ -1,27 +1,95 @@
 package com.martishyn.productapi.service;
 
 import com.martishyn.productapi.dto.ProductCreateRequest;
-import com.martishyn.productapi.dto.ProductResponseDto;
 import com.martishyn.productapi.dto.ProductUpdateRequest;
+import com.martishyn.productapi.model.Category;
+import com.martishyn.productapi.model.Product;
+import com.martishyn.productapi.repository.CategoryRepository;
+import com.martishyn.productapi.repository.ProductRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-public interface ProductService {
+@Service
+@RequiredArgsConstructor
+public class ProductService {
 
-    List<ProductResponseDto> getAllProducts();
+    private final ProductRepository productRepository;
 
-    ProductResponseDto getProductById(Long id);
+    private final CategoryRepository categoryRepository;
 
-    ProductResponseDto createProduct(ProductCreateRequest product);
+    public Product createProduct(ProductCreateRequest product, Long categoryId) {
+        if (product == null || categoryId == null) {
+            throw new IllegalArgumentException("Passing null arguments to ProductService#createProduct");
+        }
+        Category foundCategory = categoryRepository.findById(categoryId).orElseThrow(
+                () -> new IllegalArgumentException("Category id " + categoryId + " not found"));
+        Product productToCreate = createProductFromDto(product);
+        productToCreate.setCategory(foundCategory);
+        return productRepository.save(productToCreate);
+    }
 
-    ProductResponseDto updateProduct(ProductUpdateRequest product);
+    public Product findProductById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("id is null");
+        }
+        return productRepository.findById(id).orElseThrow(
+                () -> new IllegalArgumentException("Product id " + id + " not found"));
+    }
 
-    void deleteProduct(Long id);
+    public List<Product> findAllProducts() {
+        if (productRepository.findAll().isEmpty()) {
+            throw new IllegalArgumentException("No products found");
+        }
+        return productRepository.findAll();
+    }
 
-    List<ProductResponseDto> findProductsByCategory(String category);
+    public List<Product> findProductsByCategory(Long categoryId) {
+        if (categoryId == null) {
+            throw new IllegalArgumentException("categoryId is null");
+        }
+        Category foundCategory = categoryRepository.findById(categoryId).orElseThrow(
+                () -> new IllegalArgumentException("Category id " + categoryId + " not found"));
+        return productRepository.findProductsByCategory(foundCategory);
+    }
 
-    List<ProductResponseDto> findProductsByPriceRange(BigDecimal min, BigDecimal max);
+    public Product updateProduct(ProductUpdateRequest product) {
+        if (product == null) {
+            throw new IllegalArgumentException("Passing null arguments to ProductService#updateProduct");
+        }
+        Product foundProduct = productRepository.findById(product.getId()).orElseThrow(
+                () -> new IllegalArgumentException("Product id " + product.getId() + " not found"));
+        Category category = categoryRepository.findById(product.getCategoryId()).orElse(null);
+        foundProduct.setName(product.getName());
+        foundProduct.setCategory(category);
+        foundProduct.setPrice(product.getPrice());
+        return productRepository.save(foundProduct);
+    }
 
-    List<ProductResponseDto> findProductsWithSearch(String category, BigDecimal maxPrice);
+    public void deleteProductById(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("id is null");
+        }
+        productRepository.deleteById(id);
+    }
+
+    public List<Product> findProductByPriceBetween(BigDecimal min, BigDecimal max) {
+        if (min == null || max == null) {
+            throw new IllegalArgumentException("Passing null arguments to ProductService#findProductByPriceBetween");
+        }
+        return productRepository.findByPriceBetween(min, max);
+    }
+
+    public List<Product> findProductByCategoryAndPrice(BigDecimal minPrice, Category category) {
+        if (minPrice == null || category == null) {
+            throw new IllegalArgumentException("Passing null arguments to ProductService#findProductByCategoryAndPrice");
+        }
+        return productRepository.findProductByCategoryAndPriceLessThan(category, minPrice);
+    }
+
+    private Product createProductFromDto(ProductCreateRequest product) {
+        return new Product(product.getName(), product.getPrice());
+    }
 }

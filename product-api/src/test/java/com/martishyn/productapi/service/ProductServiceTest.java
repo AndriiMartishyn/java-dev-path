@@ -1,9 +1,10 @@
 package com.martishyn.productapi.service;
 
 import com.martishyn.productapi.dto.ProductCreateRequest;
-import com.martishyn.productapi.dto.ProductResponseDto;
 import com.martishyn.productapi.dto.ProductUpdateRequest;
+import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Product;
+import com.martishyn.productapi.repository.CategoryRepository;
 import com.martishyn.productapi.repository.ProductRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -15,14 +16,14 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.modelmapper.ModelMapper;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.util.Assert;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.LongConsumer;
+import java.util.function.LongFunction;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -31,11 +32,18 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 public class ProductServiceTest {
 
+    @Spy
+    private ProductUpdateRequest productUpdateRequest;
+
     @Mock
     private ProductRepository productRepository;
 
+    @Mock
+    private CategoryRepository categoryRepository;
+
     @InjectMocks
-    private DefaultProductService productService;
+    private ProductService productService;
+
 
     private List<Product> products;
 
@@ -46,24 +54,19 @@ public class ProductServiceTest {
 
     @BeforeEach
     void contextLoads() {
-        Product product = new Product(1L, "product1", BigDecimal.valueOf(11.00), "category1");
-        Product product2 = new Product(2L, "product2", BigDecimal.valueOf(22.00), "category2");
-        Product product3 = new Product(3L, "product3", BigDecimal.valueOf(33.00), "category3");
-        Product product4 = new Product(4L, "product4", BigDecimal.valueOf(44.00), "category4");
-        Product product5 = new Product(5L, "product5", BigDecimal.valueOf(55.00), "category5");
+        Category category = new Category("Test-category");
+        Product product = new Product("Test-product1", BigDecimal.valueOf(100.00), category);
+        Product product2 = new Product("Test-product2", BigDecimal.valueOf(100.00), category);
         products = new ArrayList<>();
         products.add(product);
         products.add(product2);
-        products.add(product3);
-        products.add(product4);
-        products.add(product5);
     }
 
     @Test
-    void shouldReturnAllProducts() {
+    void shouldReturnAllProductsWhenThereAreSome() {
         when(productRepository.findAll()).thenReturn(products);
 
-        List<ProductResponseDto> allProducts = productService.getAllProducts();
+        List<Product> allProducts = productService.findAllProducts();
 
         Assertions.assertEquals(products.size(), allProducts.size());
         Assertions.assertEquals(products.get(0).getId(), allProducts.get(0).getId());
@@ -73,62 +76,147 @@ public class ProductServiceTest {
     }
 
     @Test
-    void shouldReturnProductById() {
-        when(productRepository.findById(1L)).thenReturn(Optional.of(products.get(0)));
-        ProductResponseDto product = productService.getProductById(products.get(0).getId());
+    void shouldThrowExceptionWhenProductsAreEmpty() {
+        when(productRepository.findAll()).thenReturn(Collections.emptyList());
 
-        Assertions.assertEquals(1L, product.getId());
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.findAllProducts());
     }
 
     @Test
-    void shouldCreateProductAndGenerateId() {
-        ProductCreateRequest newProduct = new ProductCreateRequest("newProduct", BigDecimal.valueOf(100.00), "newCategory");
+    void shouldFindProductByIdWhenPresent() {
+        when(productRepository.findById(1L)).thenReturn(Optional.of(products.get(0)));
 
-        Product createdProduct = Product.builder()
-                .name(newProduct.getName())
-                .category(newProduct.getCategory())
-                .price(newProduct.getPrice())
-                .build();
-        when(productRepository.save(any())).thenReturn(createdProduct);
+        Product foundProduct = productService.findProductById(1L);
 
-        ProductResponseDto product = productService.createProduct(newProduct);
+        Assertions.assertEquals("Test-product1", foundProduct.getName());
+    }
 
+    @Test
+    void shouldThrowExceptionWhenIdIsNull() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.findProductById(null));
+    }
+
+    @Test
+    void shouldCreateProduct() {
+        Category category = new Category(1L, "newCategory");
+        ProductCreateRequest newProduct = new ProductCreateRequest("newProduct", BigDecimal.valueOf(100.00));
+        Product newProductCreated = new Product(1L, "newProduct", BigDecimal.valueOf(100.00), category);
+
+        when(categoryRepository.findById(category.getId())).thenReturn(Optional.of(category));
+        when(productRepository.save(any(Product.class))).thenReturn(newProductCreated);
+
+        Product product = productService.createProduct(newProduct, category.getId());
+
+        Assertions.assertEquals(1L, product.getId());
         Assertions.assertEquals("newProduct", product.getName());
-        Assertions.assertEquals("newCategory", product.getCategory());
+        Assertions.assertEquals("newCategory", product.getCategory().getName());
+    }
 
+    @Test
+    void shouldThrowExceptionWhenCategoryNotFoundDuringProductCreation() {
+        Category category = new Category(1L, "newCategory");
+        ProductCreateRequest newProduct = new ProductCreateRequest("newProduct", BigDecimal.valueOf(100.00));
+
+        when(categoryRepository.findById(category.getId())).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.createProduct(newProduct, category.getId()));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenPassingNullProduct() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.createProduct(null, 1L));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenPassingNullCategoryId() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.createProduct(new ProductCreateRequest(), null));
+    }
+
+    @Test
+    void shouldFindProductByCategory() {
+        Category category = new Category(1L, "newCategory");
+        Product newProduct = new Product("newProduct", BigDecimal.valueOf(100.00), category);
+
+        when(categoryRepository.findById(category.getId())).thenReturn(Optional.of(category));
+        when(productRepository.findProductsByCategory(category)).thenReturn(List.of(newProduct));
+
+        Assertions.assertEquals(1, productService.findProductsByCategory(category.getId()).size());
+        Assertions.assertEquals("newProduct", productService.findProductsByCategory(category.getId()).get(0).getName());
+        Assertions.assertEquals("newCategory", productService.findProductsByCategory(category.getId()).get(0).getCategory().getName());
+    }
+
+    @Test
+    void shouldFindNotProductByCategoryWhenCategoryIsNull() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.findProductsByCategory(null));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenProductNotFoundDuringProductUpdate() {
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+        when(productUpdateRequest.getId()).thenReturn(1L);
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(productUpdateRequest));
     }
 
     @Test
     void shouldUpdateProduct() {
-        ProductUpdateRequest productUpdateRequest = new ProductUpdateRequest(1L, "product-updated", BigDecimal.valueOf(12.00), "category-updated");
-        Product product = new Product(1L, "product-updated", BigDecimal.valueOf(12.00), "category-updated");
+        Category category = new Category(1L, "newCategory");
+        ProductUpdateRequest newProduct = new ProductUpdateRequest(1L, "newProduct", BigDecimal.valueOf(100.00), 1L);
+        Product oldProduct = new Product(1L,"oldProduct", BigDecimal.valueOf(150.00), category);
 
-        when(productRepository.save(any())).thenReturn(product);
+        when(productRepository.findById(1L)).thenReturn(Optional.of(oldProduct));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
+        when(productRepository.save(any(Product.class))).thenReturn(oldProduct);
 
-        ProductResponseDto productResponseDto = productService.updateProduct(productUpdateRequest);
+        Product product = productService.updateProduct(newProduct);
 
-        Assertions.assertEquals("product-updated", productResponseDto.getName());
-        Assertions.assertEquals(BigDecimal.valueOf(12.00), productResponseDto.getPrice());
-        Assertions.assertEquals("category-updated", productResponseDto.getCategory());
+        Assertions.assertEquals("newProduct", product.getName());
+        Assertions.assertEquals("newCategory", product.getCategory().getName());
+        Assertions.assertEquals(BigDecimal.valueOf(100.00), oldProduct.getPrice());
     }
 
     @Test
-    void shouldThrowExceptionWhenProductNotFound() {
-        when(productRepository.findAll()).thenReturn(List.of());
-
-        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.deleteProduct(1L));
-    }
-
-
-    @Test
-    void shouldThrowExceptionWhenPassingNullAsId() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.deleteProduct(null));
+    void shouldThrowExceptionWhenPassingNullAsIdDuringProductUpdate() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(new ProductUpdateRequest()));
     }
 
     @Test
-    void shouldDeleteProduct() {
-        when(productRepository.findAll()).thenReturn(products);
-        doNothing().when(productRepository).deleteById(1L);
-        productService.deleteProduct(1L);
+    void shouldDeleteProductById() {
+        doNothing().when(productRepository).deleteById(any(Long.class));
+        productService.deleteProductById(any(Long.class));
+    }
+
+    @Test
+    void shouldNotDeleteProductByIdWhenPassingNullAsId() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.deleteProductById(null));
+    }
+
+    @Test
+    void shouldFindProductByPriceBetween() {
+        when(productRepository.findByPriceBetween(BigDecimal.valueOf(10), BigDecimal.valueOf(100))).thenReturn(products);
+
+        List<Product> productByPriceBetween = productService.findProductByPriceBetween(BigDecimal.valueOf(10), BigDecimal.valueOf(100));
+
+        Assertions.assertEquals(2, productByPriceBetween.size());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFindProductByPriceBetweenWithNullArguments() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.findProductByPriceBetween(null, null));
+    }
+
+    @Test
+    void shouldFindProductByPriceLessThanAndCategory() {
+        Category category = new Category(1L, "newCategory");
+        when(productRepository.findProductByCategoryAndPriceLessThan(category, BigDecimal.valueOf(10))).thenReturn(products);
+
+        List<Product> productByPriceBetween = productService.findProductByCategoryAndPrice(BigDecimal.valueOf(10), category);
+
+        Assertions.assertEquals(2, productByPriceBetween.size());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFindProductByPriceLessThanAndCategoryWithNullArguments() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.findProductByCategoryAndPrice(null, null),
+                "Passing null arguments to ProductService#findProductByCategoryAndPrice");
     }
 }

@@ -1,18 +1,18 @@
 package com.martishyn.productapi.repository;
 
-import com.martishyn.productapi.dto.ProductResponseDto;
+import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Product;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
 
+@Slf4j
 @DataJpaTest
 @ActiveProfiles("test")
 public class ProductRepositoryTests {
@@ -20,12 +20,46 @@ public class ProductRepositoryTests {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private CategoryRepository categoryRepository;
+
+    @Test
+    void shouldSaveProductWithCategory() {
+        Category category = new Category("tv");
+        categoryRepository.save(category);
+
+        Product product = new Product("LG", BigDecimal.valueOf(150L), category);
+        productRepository.save(product);
+
+        List<Product> productsByCategory = productRepository.findProductsByCategory(category);
+        Assertions.assertEquals(1, productsByCategory.size());
+        Assertions.assertEquals("LG", productsByCategory.get(0).getName());
+    }
+
+    @Test
+    void shouldDeleteProductCascadingWhenCategoryIsDeleted() {
+        Category category = new Category("tv");
+
+        Product product = new Product("LG", BigDecimal.valueOf(150L), category);
+        category.addProduct(product);
+        categoryRepository.save(category);
+
+        int sizeAfterInsertion = productRepository.findAll().size();
+
+        categoryRepository.delete(category);
+
+        int sizeAfterDeletion = productRepository.findAll().size();
+
+        Assertions.assertEquals(sizeAfterInsertion - 1, sizeAfterDeletion);
+        Assertions.assertFalse(productRepository.findAll().contains(product));
+    }
+
     @Test
     void shouldReturnAllProducts() {
         List<Product> products = productRepository.findAll();
         Assertions.assertNotNull(products);
         Assertions.assertFalse(products.isEmpty());
-        Assertions.assertEquals(20, products.size());
+        Assertions.assertEquals(50, products.size());
     }
 
     @Test
@@ -37,36 +71,22 @@ public class ProductRepositoryTests {
     }
 
     @Test
-    @DirtiesContext
-    void shouldCreateNewProductInDatabase() {
-        Product lastInsertedProduct = productRepository.findAll()
-                .stream()
-                .max(Comparator.comparing(Product::getId))
-                .orElse(null);
-        Product product = new Product();
-        product.setName("TEST_NAME");
-        product.setCategory("TEST_CATEGORY");
-        product.setPrice(BigDecimal.ONE);
-        productRepository.save(product);
-        long insertedId = product.getId();
-        Assertions.assertEquals(lastInsertedProduct.getId() + 1, insertedId);
-    }
-
-    @Test
     void shouldFindProductsByCategory() {
-        List<Product> products = productRepository.findByCategory("Books");
+        Category category = categoryRepository.findByName("Books").orElse(null);
+        List<Product> products = productRepository.findProductsByCategory(category);
         Assertions.assertEquals(10, products.size());
     }
 
     @Test
     void shouldFindProductsByPriceBetween() {
         List<Product> products = productRepository.findByPriceBetween(BigDecimal.valueOf(10), BigDecimal.valueOf(100));
-        Assertions.assertEquals(12, products.size());
+        Assertions.assertEquals(23, products.size());
     }
 
     @Test
     void shouldFindProductsByCategoryAndPriceLessThan() {
-        List<ProductResponseDto> products = productRepository.findByCategoryAndPriceLessThan("Electronics",  BigDecimal.valueOf(900));
+        Category category = categoryRepository.findByName("Electronics").orElse(null);
+        List<Product> products = productRepository.findProductByCategoryAndPriceLessThan(category, BigDecimal.valueOf(900));
         Assertions.assertEquals(8, products.size());
     }
 }
