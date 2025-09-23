@@ -21,6 +21,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -48,7 +49,7 @@ public class Product {
     private Category category;
 
     @ManyToMany(mappedBy = "products")
-    private Set<Order> orders;
+    private Set<Order> orders = new HashSet<>();
 
     public Product(String name, BigDecimal price, Category category) {
         this.name = name;

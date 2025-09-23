@@ -1,5 +1,6 @@
 package com.martishyn.productapi.model;
 
+import com.martishyn.productapi.dto.ProductResponseDto;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,9 +11,13 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -20,6 +25,9 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString(exclude = {"products", "customer"})
 public class Order {
 
     @Id
@@ -35,10 +43,20 @@ public class Order {
             joinColumns = @JoinColumn(name = "order_id"),
             inverseJoinColumns = @JoinColumn(name = "product_id")
     )
-    private Set<Product> products;
+    private Set<Product> products = new HashSet<>();
 
     @OneToOne(mappedBy = "order", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private Payment payment;
+
+    public void setProduct(Product product) {
+        products.add(product);
+        product.getOrders().add(this);
+    }
+
+    public void removeProduct(Product product) {
+        products.remove(product);
+        product.getOrders().remove(this);
+    }
 
     @Override
     public boolean equals(Object o) {
