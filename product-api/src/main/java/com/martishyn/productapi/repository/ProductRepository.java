@@ -11,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -25,6 +26,9 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p where p.category=:category AND p.price < :minPrice")
     List<Product> findProductByCategoryAndPriceLessThan(@Param("category") Category category,
                                                         @Param("minPrice") BigDecimal minPrice);
+
+    @Query("SELECT p FROM Product p where p.id IN (:ids)")
+    Set<Product> findProductByIds(@Param("ids") List<Long> productIds);
 
 //    @Query("SELECT new com.martishyn.productapi.dto.ProductResponseDto(p.id, p.name, p.price, p.category)" +
 //            " FROM Product p WHERE p.category LIKE :category AND p.price < :maxPrice ORDER BY p.id")
