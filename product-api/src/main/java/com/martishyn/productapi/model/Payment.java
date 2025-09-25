@@ -1,6 +1,7 @@
 package com.martishyn.productapi.model;
 
 import com.martishyn.productapi.enums.PaymentStatus;
+import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -34,8 +35,10 @@ public class Payment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "amount")
     private BigDecimal amount;
 
+    @Column(name = "payment_status")
     @Enumerated(value = STRING)
     private PaymentStatus status;
 

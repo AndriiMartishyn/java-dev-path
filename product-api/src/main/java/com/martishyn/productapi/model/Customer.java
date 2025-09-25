@@ -12,11 +12,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
-import org.aspectj.weaver.ast.Or;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -37,7 +36,7 @@ public class Customer {
     @JsonBackReference
     @OneToMany(mappedBy = "customer", orphanRemoval = true, cascade = CascadeType.ALL)
     @ToString.Exclude
-    private List<Order> orders = new ArrayList<>();
+    private Set<Order> orders = new HashSet<>();
 
     public Customer(String name, String email) {
         this.name = name;

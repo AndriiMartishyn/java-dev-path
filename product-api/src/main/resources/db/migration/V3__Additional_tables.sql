@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS orders(
     FOREIGN KEY (customer_id) REFERENCES Customer(id)
 );
 
-CREATE TABLE IF NOT EXISTS orders_to_product(
+CREATE TABLE IF NOT EXISTS orders_to_products(
     order_id INT NOT NULL,
     product_id INT NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id),
@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS orders_to_product(
 
 CREATE TABLE IF NOT EXISTS payment(
     id SERIAL PRIMARY KEY,
+    amount DECIMAL NOT NULL,
+    payment_status VARCHAR(255) NOT NULL,
     order_id INT NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id)
 )

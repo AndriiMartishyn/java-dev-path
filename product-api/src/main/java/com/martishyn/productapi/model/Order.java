@@ -41,9 +41,10 @@ public class Order {
 
     @ManyToMany
     @JoinTable(
-            name = "order_product",
+            name = "orders_to_products",
             joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
+            inverseJoinColumns = @JoinColumn(name = "product_id",
+            nullable = false)
     )
     private Set<Product> products = new HashSet<>();
 

@@ -40,7 +40,7 @@ public class OrderService {
         orderRepository.save(order);
     }
 
-    public List<Order> getCustomersOrders(Long customerId) {
+    public Set<Order> getCustomersOrders(Long customerId) {
         Customer foundCustomer = customerService.findCustomerById(customerId);
         return foundCustomer.getOrders();
     }

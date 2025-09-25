@@ -4,6 +4,8 @@ package com.martishyn.productapi.order;
 import com.martishyn.productapi.dto.CreateCustomerRequest;
 import com.martishyn.productapi.dto.ProductCreateRequest;
 import com.martishyn.productapi.enums.PaymentStatus;
+import com.martishyn.productapi.exceptions.OrderNotFoundException;
+import com.martishyn.productapi.exceptions.PaymentNotFoundException;
 import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Customer;
 import com.martishyn.productapi.model.Order;
@@ -11,6 +13,7 @@ import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.repository.CategoryRepository;
 import com.martishyn.productapi.service.CustomerService;
 import com.martishyn.productapi.service.OrderService;
+import com.martishyn.productapi.service.PaymentService;
 import com.martishyn.productapi.service.ProductService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -37,6 +40,8 @@ public class OrderFlowIntegrationTest {
     private ProductService productService;
     @Autowired
     private CategoryRepository categoryRepository;
+    @Autowired
+    private PaymentService paymentService;
 
     @Test
     void shouldCreateCustomerOrderAndPayment() {
@@ -69,15 +74,11 @@ public class OrderFlowIntegrationTest {
         Assertions.assertEquals(customer.getId(), orderCustomer.getId());
         Assertions.assertEquals(customer.getName(), orderCustomer.getName());
         Assertions.assertEquals(customer.getEmail(), orderCustomer.getEmail());
-        // 1. Створити Customer
 
-        // 2. Створити Products
 
-        // 3. Створити Order для Customer з продуктами
-
-        // 4. Додати Payment для Order
-
-        // 5. Перевірити що все збереглося (assertThat...)
+        customerService.deleteCustomer(customer);
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getOrderWithProducts(customerOrder.getId()));
+        Assertions.assertThrows(PaymentNotFoundException.class, () ->  paymentService.getPaymentForOrder(customerOrder.getId()));
     }
 
 }
