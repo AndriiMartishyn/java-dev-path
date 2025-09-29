@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -91,5 +92,9 @@ public class ProductService {
 
     private Product createProductFromDto(ProductCreateRequest product) {
         return new Product(product.getName(), product.getPrice());
+    }
+
+    public Set<Product> findProductsByIds(List<Long> productIds) {
+        return productRepository.findProductByIds(productIds);
     }
 }
