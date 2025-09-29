@@ -57,28 +57,27 @@ public class OrderFlowIntegrationTest {
         Product createdProduct = productService.createProduct(productCreateRequest, savedCategory.getId());
         Product createdProduct2 = productService.createProduct(productCreateRequest2, savedCategory.getId());
 
-        orderService.createOrder(customer.getId(), List.of(createdProduct.getId(), createdProduct2.getId()));
+        Order order = orderService.createOrder(customer.getId(), List.of(createdProduct.getId(), createdProduct2.getId()));
 
         Assertions.assertNotNull(customer.getId());
         Assertions.assertNotNull(createdProduct.getId());
         Assertions.assertNotNull(createdProduct2.getId());
 
 
-        Order customerOrder = orderService.getCustomersOrders(customer.getId()).stream().findFirst().orElse(null);
-        Assertions.assertNotNull(customerOrder);
-        Assertions.assertEquals(PaymentStatus.PENDING, customerOrder.getPayment().getStatus());
-        Assertions.assertEquals(BigDecimal.valueOf(760), customerOrder.getPayment().getAmount());
-        Assertions.assertEquals(2, customerOrder.getProducts().size());
-        Customer orderCustomer = customerOrder.getCustomer();
+        Assertions.assertNotNull(order);
+        Assertions.assertEquals(PaymentStatus.PENDING, order.getPayment().getStatus());
+        Assertions.assertEquals(BigDecimal.valueOf(760), order.getPayment().getAmount());
+        Assertions.assertEquals(2, order.getProducts().size());
+        Customer orderCustomer = order.getCustomer();
         Assertions.assertNotNull(orderCustomer);
         Assertions.assertEquals(customer.getId(), orderCustomer.getId());
         Assertions.assertEquals(customer.getName(), orderCustomer.getName());
         Assertions.assertEquals(customer.getEmail(), orderCustomer.getEmail());
 
 
-        customerService.deleteCustomer(customer);
-        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getOrderWithProducts(customerOrder.getId()));
-        Assertions.assertThrows(PaymentNotFoundException.class, () ->  paymentService.getPaymentForOrder(customerOrder.getId()));
+        customerService.deleteCustomer(customer.getId());
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.getOrderWithProducts(order.getId()));
+        Assertions.assertThrows(PaymentNotFoundException.class, () ->  paymentService.getPaymentForOrder(order.getId()));
     }
 
 }
