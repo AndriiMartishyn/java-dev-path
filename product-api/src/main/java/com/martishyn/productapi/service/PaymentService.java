@@ -22,6 +22,9 @@ public class PaymentService {
 
     @Transactional
     public Payment createPayment(Order order, Set<Product> products) {
+        if (paymentRepository.findByOrderId(order.getId()).isPresent()) {
+            throw new IllegalStateException("Payment already exists for order " + order.getId());
+        }
         Payment payment = new Payment();
         payment.setStatus(PaymentStatus.PENDING);
         BigDecimal productsPrice = products.stream()
@@ -35,6 +38,9 @@ public class PaymentService {
     @Transactional
     public Payment updatePaymentStatus(Long paymentId, PaymentStatus status) {
         Payment payment = paymentRepository.findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment id " + paymentId + " not found"));
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            throw new IllegalStateException("Payment is already completed");
+        }
         payment.setStatus(status);
         return paymentRepository.save(payment);
     }

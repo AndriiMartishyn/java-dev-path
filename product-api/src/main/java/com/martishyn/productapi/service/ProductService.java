@@ -2,6 +2,8 @@ package com.martishyn.productapi.service;
 
 import com.martishyn.productapi.dto.ProductCreateRequest;
 import com.martishyn.productapi.dto.ProductUpdateRequest;
+import com.martishyn.productapi.exceptions.CategoryNotFoundException;
+import com.martishyn.productapi.exceptions.ProductNotFoundException;
 import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.repository.CategoryRepository;
@@ -37,14 +39,15 @@ public class ProductService {
             throw new IllegalArgumentException("id is null");
         }
         return productRepository.findById(id).orElseThrow(
-                () -> new IllegalArgumentException("Product id " + id + " not found"));
+                () -> new ProductNotFoundException("Product id " + id + " not found"));
     }
 
     public List<Product> findAllProducts() {
-        if (productRepository.findAll().isEmpty()) {
-            throw new IllegalArgumentException("No products found");
+        List<Product> products = productRepository.findAll();
+        if (products.isEmpty()) {
+            throw new ProductNotFoundException("No products found");
         }
-        return productRepository.findAll();
+        return products;
     }
 
     public List<Product> findProductsByCategory(Long categoryId) {
@@ -61,8 +64,9 @@ public class ProductService {
             throw new IllegalArgumentException("Passing null arguments to ProductService#updateProduct");
         }
         Product foundProduct = productRepository.findById(product.getId()).orElseThrow(
-                () -> new IllegalArgumentException("Product id " + product.getId() + " not found"));
-        Category category = categoryRepository.findById(product.getCategoryId()).orElse(null);
+                () -> new ProductNotFoundException("Product id " + product.getId() + " not found"));
+        Category category = categoryRepository.findById(product.getCategoryId())
+                .orElseThrow(() -> new CategoryNotFoundException("Category id " + product.getCategoryId() + " not found"));
         foundProduct.setName(product.getName());
         foundProduct.setCategory(category);
         foundProduct.setPrice(product.getPrice());

@@ -10,7 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -27,17 +28,16 @@ public class OrderService {
     private final PaymentService paymentService;
 
     @Transactional
-    public void createOrder(Long customerId, List<Long> productIds) {
+    public Order createOrder(Long customerId, List<Long> productIds) {
         Customer foundCustomer = customerService.findCustomerById(customerId);
         Set<Product> foundProducts = productService.findProductsByIds(productIds);
         Order order = new Order();
-        order.setCustomer(foundCustomer);
         order.setProducts(foundProducts);
+        foundCustomer.addOrder(order);
         Order createdOrder = orderRepository.save(order);
         Payment createdPayment = paymentService.createPayment(createdOrder, foundProducts);
         order.setPayment(createdPayment);
-        foundCustomer.setOrder(createdOrder);
-        orderRepository.save(order);
+        return order;
     }
 
     public Set<Order> getCustomersOrders(Long customerId) {
@@ -50,20 +50,18 @@ public class OrderService {
     }
 
     public void deleteOrder(Long orderId) {
-        Optional<Order> order = orderRepository.findById(orderId);
-        if (order.isEmpty()) {
-            throw new OrderNotFoundException(ORDER_NOT_FOUND);
-        }
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() ->new OrderNotFoundException(ORDER_NOT_FOUND));
         orderRepository.deleteById(orderId);
-    }
+}
 
-    public Order updateOrderProducts(Long orderId, List<Long> productIds) {
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND));
-        order.getProducts().forEach(order::removeProduct);
-        Set<Product> foundProducts = productService.findProductsByIds(productIds);
-        foundProducts.forEach(order::setProduct);
-        return orderRepository.save(order);
-    }
+public Order updateOrderProducts(Long orderId, List<Long> productIds) {
+    Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND));
+    order.getProducts().forEach(order::removeProduct);
+    Set<Product> foundProducts = productService.findProductsByIds(productIds);
+    foundProducts.forEach(order::setProduct);
+    return orderRepository.save(order);
+}
 
 
 }

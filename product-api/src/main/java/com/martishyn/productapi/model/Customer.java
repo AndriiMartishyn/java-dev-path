@@ -43,7 +43,7 @@ public class Customer {
         this.email = email;
     }
 
-    public void setOrder(Order order) {
+    public void addOrder(Order order) {
         orders.add(order);
         order.setCustomer(this);
     }
