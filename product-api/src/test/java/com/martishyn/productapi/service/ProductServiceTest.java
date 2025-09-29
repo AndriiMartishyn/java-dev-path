@@ -2,6 +2,7 @@ package com.martishyn.productapi.service;
 
 import com.martishyn.productapi.dto.ProductCreateRequest;
 import com.martishyn.productapi.dto.ProductUpdateRequest;
+import com.martishyn.productapi.exceptions.ProductNotFoundException;
 import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.repository.CategoryRepository;
@@ -22,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.LongConsumer;
-import java.util.function.LongFunction;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
@@ -43,7 +42,6 @@ public class ProductServiceTest {
 
     @InjectMocks
     private ProductService productService;
-
 
     private List<Product> products;
 
@@ -79,7 +77,7 @@ public class ProductServiceTest {
     void shouldThrowExceptionWhenProductsAreEmpty() {
         when(productRepository.findAll()).thenReturn(Collections.emptyList());
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.findAllProducts());
+        Assertions.assertThrows(ProductNotFoundException.class, () -> productService.findAllProducts());
     }
 
     @Test
@@ -154,7 +152,7 @@ public class ProductServiceTest {
     void shouldThrowExceptionWhenProductNotFoundDuringProductUpdate() {
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
         when(productUpdateRequest.getId()).thenReturn(1L);
-        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(productUpdateRequest));
+        Assertions.assertThrows(ProductNotFoundException.class, () -> productService.updateProduct(productUpdateRequest));
     }
 
     @Test
@@ -176,7 +174,7 @@ public class ProductServiceTest {
 
     @Test
     void shouldThrowExceptionWhenPassingNullAsIdDuringProductUpdate() {
-        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(new ProductUpdateRequest()));
+        Assertions.assertThrows(ProductNotFoundException.class, () -> productService.updateProduct(new ProductUpdateRequest()));
     }
 
     @Test

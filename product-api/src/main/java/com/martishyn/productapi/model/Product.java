@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Min;
@@ -20,7 +21,9 @@ import lombok.NonNull;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -45,7 +48,17 @@ public class Product {
     @ManyToOne(fetch = FetchType.LAZY)
     private Category category;
 
+    @ManyToMany(mappedBy = "products")
+    private Set<Order> orders = new HashSet<>();
+
     public Product(String name, BigDecimal price, Category category) {
+        this.name = name;
+        this.price = price;
+        this.category = category;
+    }
+
+    public Product(Long id, String name, BigDecimal price, Category category) {
+        this.id = id;
         this.name = name;
         this.price = price;
         this.category = category;
