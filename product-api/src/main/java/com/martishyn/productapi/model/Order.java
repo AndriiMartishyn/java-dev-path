@@ -51,6 +51,10 @@ public class Order {
     @OneToOne(mappedBy = "order", cascade = jakarta.persistence.CascadeType.ALL, orphanRemoval = true)
     private Payment payment;
 
+    public Order(Customer customer) {
+        this.customer = customer;
+    }
+
     public void setProduct(Product product) {
         products.add(product);
         product.getOrders().add(this);

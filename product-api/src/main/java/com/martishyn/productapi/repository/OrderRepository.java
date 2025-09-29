@@ -15,4 +15,10 @@ public interface OrderRepository  extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM Order o JOIN FETCH o.products WHERE o.id = :orderId")
     Optional<Order> findWithProducts(Long orderId);
+
+    @Query("SELECT o.customer.id, COUNT(o) FROM Order o GROUP BY o.customer.id")
+    List<Object[]> countOrdersByCustomer();
+
+    @Query("SELECT o FROM Order o WHERE o.payment IS NULL")
+    List<Order> findAllOrdersWithoutPayment();
 }
