@@ -29,7 +29,6 @@ import java.util.List;
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-@Transactional
 public class OrderFlowIntegrationTest {
 
     @Autowired
@@ -66,7 +65,7 @@ public class OrderFlowIntegrationTest {
 
         Assertions.assertNotNull(order);
         Assertions.assertEquals(PaymentStatus.PENDING, order.getPayment().getStatus());
-        Assertions.assertEquals(BigDecimal.valueOf(760), order.getPayment().getAmount());
+        Assertions.assertEquals(new BigDecimal("760.00"), order.getPayment().getAmount());
         Assertions.assertEquals(2, order.getProducts().size());
         Customer orderCustomer = order.getCustomer();
         Assertions.assertNotNull(orderCustomer);

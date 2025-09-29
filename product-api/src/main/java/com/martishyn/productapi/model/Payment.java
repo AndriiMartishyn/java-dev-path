@@ -47,6 +47,12 @@ public class Payment {
     @ToString.Exclude
     private Order order;
 
+    public Payment(BigDecimal amount, PaymentStatus status, Order order) {
+        this.amount = amount;
+        this.status = status;
+        this.order = order;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

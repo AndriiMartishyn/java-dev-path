@@ -1,7 +1,6 @@
 package com.martishyn.productapi.controller;
 
 import com.martishyn.productapi.dto.ProductCreateRequest;
-import com.martishyn.productapi.dto.ProductResponseDto;
 import com.martishyn.productapi.dto.ProductUpdateRequest;
 import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Product;
