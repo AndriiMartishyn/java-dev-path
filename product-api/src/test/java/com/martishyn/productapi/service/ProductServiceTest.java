@@ -2,6 +2,7 @@ package com.martishyn.productapi.service;
 
 import com.martishyn.productapi.dto.ProductCreateRequest;
 import com.martishyn.productapi.dto.ProductUpdateRequest;
+import com.martishyn.productapi.exceptions.CategoryNotFoundException;
 import com.martishyn.productapi.exceptions.ProductNotFoundException;
 import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Product;
@@ -24,6 +25,7 @@ import java.util.Optional;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -65,6 +67,7 @@ public class ProductServiceTest {
         Assertions.assertEquals(products.get(0).getName(), allProducts.get(0).getName());
         Assertions.assertEquals(products.get(0).getPrice(), allProducts.get(0).getPrice());
         Assertions.assertEquals(products.get(0).getCategory(), allProducts.get(0).getCategory());
+        verify(productRepository).findAll();
     }
 
     @Test
@@ -81,6 +84,7 @@ public class ProductServiceTest {
         Product foundProduct = productService.findProductById(1L);
 
         Assertions.assertEquals("Test-product1", foundProduct.getName());
+        verify(productRepository).findById(1L);
     }
 
     @Test
@@ -108,6 +112,8 @@ public class ProductServiceTest {
         Assertions.assertEquals(1L, product.getId());
         Assertions.assertEquals("newProduct", product.getName());
         Assertions.assertEquals("newCategory", product.getCategory().getName());
+        verify(categoryRepository).findById(category.getId());
+        verify(productRepository).save(any(Product.class));
     }
 
     @Test
@@ -138,9 +144,12 @@ public class ProductServiceTest {
         when(categoryRepository.findById(category.getId())).thenReturn(Optional.of(category));
         when(productRepository.findProductsByCategory(category)).thenReturn(List.of(newProduct));
 
-        Assertions.assertEquals(1, productService.findProductsByCategory(category.getId()).size());
-        Assertions.assertEquals("newProduct", productService.findProductsByCategory(category.getId()).get(0).getName());
-        Assertions.assertEquals("newCategory", productService.findProductsByCategory(category.getId()).get(0).getCategory().getName());
+        List<Product> productByCategory = productService.findProductsByCategory(category.getId());
+        Assertions.assertEquals(1, productByCategory.size());
+        Assertions.assertEquals("newProduct", productByCategory.get(0).getName());
+        Assertions.assertEquals("newCategory", productByCategory.get(0).getCategory().getName());
+        verify(productRepository).findProductsByCategory(category);
+        verify(categoryRepository).findById(category.getId());
     }
 
     @Test
@@ -159,7 +168,7 @@ public class ProductServiceTest {
     void shouldUpdateProduct() {
         Category category = new Category(1L, "newCategory");
         ProductUpdateRequest newProduct = new ProductUpdateRequest(1L, "newProduct", BigDecimal.valueOf(100.00), 1L);
-        Product oldProduct = new Product(1L,"oldProduct", BigDecimal.valueOf(150.00), category);
+        Product oldProduct = new Product(1L, "oldProduct", BigDecimal.valueOf(150.00), category);
 
         when(productRepository.findById(1L)).thenReturn(Optional.of(oldProduct));
         when(categoryRepository.findById(1L)).thenReturn(Optional.of(category));
@@ -170,6 +179,9 @@ public class ProductServiceTest {
         Assertions.assertEquals("newProduct", product.getName());
         Assertions.assertEquals("newCategory", product.getCategory().getName());
         Assertions.assertEquals(BigDecimal.valueOf(100.00), oldProduct.getPrice());
+        verify(productRepository).save(any(Product.class));
+        verify(productRepository).findById(1L);
+        verify(categoryRepository).findById(1L);
     }
 
     @Test
@@ -182,6 +194,18 @@ public class ProductServiceTest {
         when(productRepository.findById(1L)).thenReturn(Optional.empty());
         when(productUpdateRequest.getId()).thenReturn(1L);
         Assertions.assertThrows(ProductNotFoundException.class, () -> productService.updateProduct(productUpdateRequest));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenProductUpdateCallWithNotExistingCategory() {
+        Product product = new Product(1L, "oldProduct", BigDecimal.valueOf(150.00), new Category());
+
+        when(productUpdateRequest.getId()).thenReturn(1L);
+        when(productUpdateRequest.getCategoryId()).thenReturn(1L);
+        when(productRepository.findById(1L)).thenReturn(Optional.of(product));
+        when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+
+        Assertions.assertThrows(CategoryNotFoundException.class, () -> productService.updateProduct(productUpdateRequest));
     }
 
     @Test
@@ -202,6 +226,7 @@ public class ProductServiceTest {
         List<Product> productByPriceBetween = productService.findProductByPriceBetween(BigDecimal.valueOf(10), BigDecimal.valueOf(100));
 
         Assertions.assertEquals(2, productByPriceBetween.size());
+        verify(productRepository).findByPriceBetween(BigDecimal.valueOf(10), BigDecimal.valueOf(100));
     }
 
     @Test
@@ -217,6 +242,7 @@ public class ProductServiceTest {
         List<Product> productByPriceBetween = productService.findProductByCategoryAndPrice(BigDecimal.valueOf(10), category);
 
         Assertions.assertEquals(2, productByPriceBetween.size());
+        verify(productRepository).findProductByCategoryAndPriceLessThan(category, BigDecimal.valueOf(10));
     }
 
     @Test

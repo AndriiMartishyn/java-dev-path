@@ -44,6 +44,7 @@ public class CustomerServiceTest {
         Assertions.assertEquals(1L, createdCustomer.getId());
         Assertions.assertEquals("test", createdCustomer.getName());
         Assertions.assertEquals("<EMAIL>", createdCustomer.getEmail());
+        verify(customerRepository).save(any(Customer.class));
     }
 
     @Test
@@ -60,6 +61,7 @@ public class CustomerServiceTest {
         Assertions.assertEquals(1L, customerById.getId());
         Assertions.assertEquals("test", customerById.getName());
         Assertions.assertEquals("<EMAIL>", customerById.getEmail());
+        verify(customerRepository).findById(1L);
     }
 
     @Test
@@ -86,6 +88,7 @@ public class CustomerServiceTest {
         Assertions.assertEquals(1L, customerByName.getId());
         Assertions.assertEquals("test", customerByName.getName());
         Assertions.assertEquals("<EMAIL>", customerByName.getEmail());
+        verify(customerRepository).findCustomerByName("test");
     }
 
     @Test
@@ -126,6 +129,8 @@ public class CustomerServiceTest {
         ArgumentCaptor<Customer> capture = ArgumentCaptor.forClass(Customer.class);
 
         customerService.deleteCustomer(1L);
+
+        verify(customerRepository).findById(1L);
         verify(customerRepository).delete(capture.capture());
         Assertions.assertEquals(1L, capture.getValue().getId());
         Assertions.assertEquals("test", capture.getValue().getName());
