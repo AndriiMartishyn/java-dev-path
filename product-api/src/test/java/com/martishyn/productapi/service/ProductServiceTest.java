@@ -8,13 +8,11 @@ import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.repository.CategoryRepository;
 import com.martishyn.productapi.repository.ProductRepository;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -45,10 +43,6 @@ public class ProductServiceTest {
 
     private List<Product> products;
 
-    @BeforeAll
-    public static void beforeAll() {
-        MockitoAnnotations.openMocks(ProductServiceTest.class);
-    }
 
     @BeforeEach
     void contextLoads() {
@@ -87,6 +81,12 @@ public class ProductServiceTest {
         Product foundProduct = productService.findProductById(1L);
 
         Assertions.assertEquals("Test-product1", foundProduct.getName());
+    }
+
+    @Test
+    void shouldThrowExceptionWhenFindProductByIdAndWithWrongId() {
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+        Assertions.assertThrows(ProductNotFoundException.class, () -> productService.findProductById(1L));
     }
 
     @Test
@@ -173,8 +173,15 @@ public class ProductServiceTest {
     }
 
     @Test
-    void shouldThrowExceptionWhenPassingNullAsIdDuringProductUpdate() {
-        Assertions.assertThrows(ProductNotFoundException.class, () -> productService.updateProduct(new ProductUpdateRequest()));
+    void shouldThrowExceptionWhenProductUpdateCallAndRequestIsNull() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> productService.updateProduct(null));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenProductUpdateCallWithWrongId() {
+        when(productRepository.findById(1L)).thenReturn(Optional.empty());
+        when(productUpdateRequest.getId()).thenReturn(1L);
+        Assertions.assertThrows(ProductNotFoundException.class, () -> productService.updateProduct(productUpdateRequest));
     }
 
     @Test
