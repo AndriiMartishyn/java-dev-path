@@ -40,29 +40,33 @@ public class OrderService {
         return order;
     }
 
+    @Transactional(readOnly = true)
     public Set<Order> getCustomersOrders(Long customerId) {
         Customer foundCustomer = customerService.findCustomerById(customerId);
         return foundCustomer.getOrders();
     }
 
+    @Transactional(readOnly = true)
     public Order getOrderWithProducts(Long orderId) {
         return orderRepository.findWithProducts(orderId).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND));
     }
 
+    @Transactional
     public void deleteOrder(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() ->new OrderNotFoundException(ORDER_NOT_FOUND));
-        orderRepository.deleteById(orderId);
+                .orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND));
+        orderRepository.deleteById(order.getId());
+    }
+
+    @Transactional
+    public Order updateOrderProducts(Long orderId, List<Long> productIds) {
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND));
+        List<Product> copyOfProducts = new ArrayList<>(order.getProducts());
+        for (Product p : copyOfProducts){
+            order.removeProduct(p);
+        }
+        Set<Product> foundProducts = productService.findProductsByIds(productIds);
+        foundProducts.forEach(order::setProduct);
+        return orderRepository.save(order);
+    }
 }
-
-public Order updateOrderProducts(Long orderId, List<Long> productIds) {
-    Order order = orderRepository.findById(orderId).orElseThrow(() -> new OrderNotFoundException(ORDER_NOT_FOUND));
-    order.getProducts().forEach(order::removeProduct);
-    Set<Product> foundProducts = productService.findProductsByIds(productIds);
-    foundProducts.forEach(order::setProduct);
-    return orderRepository.save(order);
-}
-
-
-}
-
