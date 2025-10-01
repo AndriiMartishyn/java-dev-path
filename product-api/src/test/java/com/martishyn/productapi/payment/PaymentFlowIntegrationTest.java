@@ -12,9 +12,6 @@ import com.martishyn.productapi.repository.CustomerRepository;
 import com.martishyn.productapi.repository.PaymentRepository;
 import com.martishyn.productapi.repository.ProductRepository;
 import com.martishyn.productapi.service.PaymentService;
-import com.martishyn.productapi.service.ProductService;
-import org.assertj.core.api.AbstractSoftAssertions;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,7 +21,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.Set;
 
 @SpringBootTest
@@ -48,13 +44,12 @@ public class PaymentFlowIntegrationTest {
     private ProductRepository productRepository;
 
     private Customer customer;
-    private Category category;
     private Order order;
     private Set<Product> products;
 
     @BeforeEach
     void setup() {
-        category = categoryRepository.save(new Category("Electronics"));
+        Category category = categoryRepository.save(new Category("Electronics"));
         customer = customerRepository.save(new Customer("Alice", "alice@mail.com"));
         Product product1 = productRepository.save(new Product("Laptop", BigDecimal.valueOf(1200), category));
         Product product2 = productRepository.save(new Product("Phone", BigDecimal.valueOf(800), category));
@@ -85,11 +80,11 @@ public class PaymentFlowIntegrationTest {
         Payment createdPayment = paymentService.createPayment(order, products);
 
         Payment updatedPayment = paymentService.updatePaymentStatus(createdPayment.getId(), PaymentStatus.PAID);
-        Assertions.assertSame(PaymentStatus.PAID, updatedPayment.getStatus());
+        Assertions.assertEquals(PaymentStatus.PAID, updatedPayment.getStatus());
 
         Payment persistedPayment = paymentRepository.findById(createdPayment.getId()).orElse(null);
         Assertions.assertNotNull(persistedPayment);
-        Assertions.assertSame(PaymentStatus.PAID, persistedPayment.getStatus());
+        Assertions.assertEquals(PaymentStatus.PAID, persistedPayment.getStatus());
     }
 
     @Test
@@ -107,7 +102,6 @@ public class PaymentFlowIntegrationTest {
         Payment createdPayment = paymentService.createPayment(order, products);
 
         Payment fetchedPayment = paymentService.getPaymentForOrder(createdPayment.getOrder().getId());
-
         Assertions.assertNotNull(fetchedPayment);
         Assertions.assertEquals(order.getId(), fetchedPayment.getOrder().getId());
     }
