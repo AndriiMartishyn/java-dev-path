@@ -1,11 +1,8 @@
 package com.martishyn.productapi.order;
 
 
-import com.martishyn.productapi.dto.CreateCustomerRequest;
-import com.martishyn.productapi.dto.ProductCreateRequest;
 import com.martishyn.productapi.enums.PaymentStatus;
 import com.martishyn.productapi.exceptions.OrderNotFoundException;
-import com.martishyn.productapi.exceptions.PaymentNotFoundException;
 import com.martishyn.productapi.model.Category;
 import com.martishyn.productapi.model.Customer;
 import com.martishyn.productapi.model.Order;
@@ -16,27 +13,20 @@ import com.martishyn.productapi.repository.CustomerRepository;
 import com.martishyn.productapi.repository.OrderRepository;
 import com.martishyn.productapi.repository.PaymentRepository;
 import com.martishyn.productapi.repository.ProductRepository;
-import com.martishyn.productapi.service.CustomerService;
 import com.martishyn.productapi.service.OrderService;
-import com.martishyn.productapi.service.PaymentService;
-import com.martishyn.productapi.service.ProductService;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Stream;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -45,6 +35,8 @@ public class OrderFlowIntegrationTest {
 
     @Autowired
     private OrderService orderService;
+    @Mock
+    private OrderRepository orderRepository;
     @Autowired
     private CustomerRepository customerRepository;
     @Autowired
