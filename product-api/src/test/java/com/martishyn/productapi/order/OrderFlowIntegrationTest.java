@@ -10,18 +10,19 @@ import com.martishyn.productapi.model.Payment;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.repository.CategoryRepository;
 import com.martishyn.productapi.repository.CustomerRepository;
-import com.martishyn.productapi.repository.OrderRepository;
 import com.martishyn.productapi.repository.PaymentRepository;
 import com.martishyn.productapi.repository.ProductRepository;
 import com.martishyn.productapi.service.OrderService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -29,14 +30,16 @@ import java.util.List;
 import java.util.Set;
 
 @SpringBootTest
-@ActiveProfiles("test")
+@Testcontainers
 @Transactional
 public class OrderFlowIntegrationTest {
 
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:16");
+
     @Autowired
     private OrderService orderService;
-    @Mock
-    private OrderRepository orderRepository;
     @Autowired
     private CustomerRepository customerRepository;
     @Autowired
@@ -60,7 +63,6 @@ public class OrderFlowIntegrationTest {
         product1 = productRepository.save(new Product("Laptop", BigDecimal.valueOf(1200), category));
         product2 = productRepository.save(new Product("Phone", BigDecimal.valueOf(800), category));
     }
-
 
     @Test
     void createOrder_shouldPersistOrderAndPayment() {
