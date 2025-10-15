@@ -9,6 +9,7 @@ import com.martishyn.productapi.model.Payment;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.repository.CategoryRepository;
 import com.martishyn.productapi.repository.CustomerRepository;
+import com.martishyn.productapi.repository.OrderRepository;
 import com.martishyn.productapi.repository.PaymentRepository;
 import com.martishyn.productapi.repository.ProductRepository;
 import com.martishyn.productapi.service.PaymentService;
@@ -18,7 +19,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -51,6 +51,9 @@ public class PaymentFlowIntegrationTest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private OrderRepository orderRepository;
+
     private Customer customer;
     private Order order;
     private Set<Product> products;
@@ -65,12 +68,13 @@ public class PaymentFlowIntegrationTest {
         order = new Order();
         order.setCustomer(customer);
         order.setProducts(products);
+        orderRepository.save(order);
     }
 
 
     @Test
     void shouldCreatePayment() {
-        Payment createdPayment = paymentService.createPayment(order, products);
+        Payment createdPayment = paymentService.createPayment(order.getId(), products.stream().map(Product::getId).toList());
 
         Assertions.assertNotNull(createdPayment.getId());
         Assertions.assertSame(PaymentStatus.PENDING, createdPayment.getStatus());
@@ -85,7 +89,7 @@ public class PaymentFlowIntegrationTest {
 
     @Test
     void shouldUpdatePaymentStatus() {
-        Payment createdPayment = paymentService.createPayment(order, products);
+        Payment createdPayment = paymentService.createPayment(order.getId(), products.stream().map(Product::getId).toList());
 
         Payment updatedPayment = paymentService.updatePaymentStatus(createdPayment.getId(), PaymentStatus.PAID);
         Assertions.assertEquals(PaymentStatus.PAID, updatedPayment.getStatus());
@@ -107,7 +111,7 @@ public class PaymentFlowIntegrationTest {
 
     @Test
     void shouldGetPaymentForOrder() {
-        Payment createdPayment = paymentService.createPayment(order, products);
+        Payment createdPayment = paymentService.createPayment(order.getId(), products.stream().map(Product::getId).toList());
 
         Payment fetchedPayment = paymentService.getPaymentForOrder(createdPayment.getOrder().getId());
         Assertions.assertNotNull(fetchedPayment);
