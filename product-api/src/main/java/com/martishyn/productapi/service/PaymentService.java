@@ -6,33 +6,43 @@ import com.martishyn.productapi.model.Order;
 import com.martishyn.productapi.model.Payment;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.repository.PaymentRepository;
-import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Set;
+import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
+    private final OrderService orderService;
+    private final ProductService productService;
+
+    public PaymentService(PaymentRepository paymentRepository, @Lazy OrderService orderService, ProductService productService) {
+        this.paymentRepository = paymentRepository;
+        this.orderService = orderService;
+        this.productService = productService;
+    }
 
     @Transactional
-    public Payment createPayment(Order order, Set<Product> products) {
-        if (paymentRepository.findByOrderId(order.getId()).isPresent()) {
-            throw new IllegalStateException("Payment already exists for order " + order.getId());
+    public Payment createPayment(Long orderId, List<Long> productIds) {
+        Optional<Payment> existingPayment = paymentRepository.findByOrderId(orderId);
+        if (existingPayment.isPresent()) {
+            throw new IllegalStateException("Payment already exists for order " + orderId);
         }
-        Payment payment = new Payment();
-        payment.setStatus(PaymentStatus.PENDING);
-        BigDecimal productsPrice = products.stream()
+        Order orderWithProducts = orderService.getOrderWithProducts(orderId);
+        Payment newPayment = new Payment();
+        newPayment.setStatus(PaymentStatus.PENDING);
+        BigDecimal productsPrice = productService.findProductsByIds(productIds)
+                .stream()
                 .map(Product::getPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        payment.setOrder(order);
-        payment.setAmount(productsPrice);
-        return paymentRepository.save(payment);
+        newPayment.setAmount(productsPrice);
+        newPayment.setOrder(orderWithProducts);
+        return paymentRepository.save(newPayment);
     }
 
     @Transactional
@@ -49,4 +59,10 @@ public class PaymentService {
     public Payment getPaymentForOrder(Long orderId) {
         return paymentRepository.findByOrderId(orderId).orElseThrow(() -> new PaymentNotFoundException("Payment for orderId " + orderId + " not found"));
     }
+
+    @Transactional(readOnly = true)
+    public Payment findPaymentById(Long paymentId) {
+        return paymentRepository.findById(paymentId).orElseThrow(() -> new PaymentNotFoundException("Payment not found with id " + paymentId));
+    }
+
 }

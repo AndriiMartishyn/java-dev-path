@@ -7,6 +7,7 @@ import com.martishyn.productapi.model.Payment;
 import com.martishyn.productapi.model.Product;
 import com.martishyn.productapi.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +36,7 @@ public class OrderService {
         order.setProducts(foundProducts);
         foundCustomer.addOrder(order);
         Order createdOrder = orderRepository.save(order);
-        Payment createdPayment = paymentService.createPayment(createdOrder, foundProducts);
+        Payment createdPayment = paymentService.createPayment(createdOrder.getId(), productIds);
         order.setPayment(createdPayment);
         return order;
     }
